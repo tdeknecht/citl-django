@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	{% load static %}
+	<link rel="stylesheet" type="text/css" href="{% static 'shooter/style.css' %}" />
+
+	<title>
+		CITL: {{ season.0.season_year }} Season
+	</title>
+</head>
+
+<body>
+	<h1> {{ season.0.season_year }} Season </h1>
+	<table id="shooter_tables">
+		<tr>
+			<th>Team</th>
+		</tr>
+		{% for item in season %}
+		<tr>
+			<td><a href="{% url 'shooter:team' item.season_year item.team__team_name %}">{{ item.team__team_name }}</a></td>
+		</tr>
+		{% endfor %}
+	</table>
+	
+</body>
+</html>

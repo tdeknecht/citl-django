@@ -1,0 +1,109 @@
+.citl-logo {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	text-decoration: none;
+	line-height: 1;
+	font-size: 37px;
+	letter-spacing: 3px;
+	color: #555555;
+	display: block;
+	top: 17px;
+}
+
+.citl-slogan {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	text-decoration: none;
+	line-height: 1;
+	font-size: 17px;
+	letter-spacing: 3px;
+	color: #555555;
+	display: block;
+	text-align: right;
+	top: 17px;
+}
+
+a:link, a:visited {
+	text-decoration: none;
+	color: inherit;
+}
+
+a:hover, a:active {
+    text-decoration: none;
+	color: green;
+}
+
+/* Page layout styles */
+
+#header{
+	background-color: white;
+	width:100%;
+	text-align: left;
+	text-transform: uppercase;
+	color: black;
+	border-bottom: solid;
+}
+
+#sidebar-left{
+	float:left;
+	width:15%;
+	background-color: dodgerblue;
+	padding: 20px;
+	box-sizing: border-box;
+}
+#main{
+	float:left;
+	width:70%;
+	background-color: white;
+	letter-spacing: 2px;
+	padding: 20px;
+	box-sizing: border-box;
+}
+#sidebar-right{
+	float:left;
+	width:15%;
+	background-color: white;
+	padding: 20px;
+	box-sizing: border-box;
+}
+#footer{
+	clear:both;
+	height: 50px;
+	width: 100%;
+	text-align: center;
+	background-color: dodgerblue;
+	color: white;
+	padding: 20px;
+	box-sizing: border-box;
+}
+#sidebar-left, #main, #sidebar-right{
+	min-height: 600px				
+}
+
+
+/* Shooter Tables formatting */
+
+#shooter_tables {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 40%;
+}
+
+#shooter_tables td, #shooter_tables th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#shooter_tables tr:nth-child(even) {
+	background-color: #f2f2f2;
+}
+
+#shooter_tables tr:hover {
+	background-color: #ddd;
+}
+
+#shooter_tables th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+}

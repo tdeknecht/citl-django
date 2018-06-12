@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	{% load static %}
+	<link rel="stylesheet" type="text/css" href="{% static 'shooter/style.css' %}" />
+
+	<title>
+		CITL: {{ team.0.team__team_name }}
+	</title>
+</head>
+
+<body>
+	<h1> {{ team.0.season_year }} Season </h1>
+	<table id="shooter_tables">
+		<tr>
+			<th>Year</th>
+			<th>Team</th>
+			<th>First</th>
+			<th>Last</th>
+			<th>Average</th>
+		</tr>
+		{% for item in team %}
+		<tr>
+			<td>{{ item.season_year }}</td>
+			<td>{{ item.team__team_name }}</td>
+			<td>{{ item.shooter__first_name }}</td>
+			<td>{{ item.shooter__last_name }}</td>
+			<td>{{ item.shooter__average }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+</body>
+</html>
