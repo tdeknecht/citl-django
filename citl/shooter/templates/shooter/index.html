@@ -19,8 +19,7 @@
 		
 	</div>
 	
-	<div id="main">
-	<div class="content">
+	<div id="main" class="general-text">
 		{% regroup all_season by season_year as season_list %}
 		{% for season in season_list %}
 			<p>
@@ -36,7 +35,6 @@
 			</table>
 			</p>
 		{% endfor %}
-	</div>
 	</div>
 
 	<div id="sidebar-right">

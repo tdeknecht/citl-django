@@ -21,6 +21,14 @@
 	top: 17px;
 }
 
+.general-text {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	text-decoration: none;
+	color: inherit;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+}
+
 a:link, a:visited {
 	text-decoration: none;
 	color: inherit;
@@ -53,7 +61,6 @@ a:hover, a:active {
 	float:left;
 	width:70%;
 	background-color: white;
-	letter-spacing: 2px;
 	padding: 20px;
 	box-sizing: border-box;
 }
