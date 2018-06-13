@@ -3,7 +3,7 @@
 	text-decoration: none;
 	line-height: 1;
 	font-size: 37px;
-	letter-spacing: 3px;
+	letter-spacing: 2px;
 	color: #555555;
 	display: block;
 	top: 17px;
@@ -29,6 +29,8 @@
 	text-transform: uppercase;
 }
 
+/* Global CSS */
+
 a:link, a:visited {
 	text-decoration: none;
 	color: inherit;
@@ -48,15 +50,37 @@ a:hover, a:active {
 	text-transform: uppercase;
 	color: black;
 	border-bottom: solid;
+	padding-top: 10px;
+	box-sizing: border-box;
 }
 
 #sidebar-left{
 	float:left;
 	width:15%;
-	background-color: dodgerblue;
-	padding: 20px;
+	background-color: #f2f2f2;
+	padding: 0px;
 	box-sizing: border-box;
 }
+
+#sidebar-left a:link, #sidebar-left a:visited {
+    background-color: #f2f2f2;
+    color: black;
+    border: 0px solid black;
+    padding: 10px 20px;
+    text-align: left;
+    text-decoration: none;
+    display: inline-block;
+	width: 100%;
+    box-sizing: border-box;
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	letter-spacing: 2px;
+}
+
+#sidebar-left a:hover, #sidebar-left a:active {
+    background-color: #4CAF50;
+    color: white;
+}
+
 #main{
 	float:left;
 	width:70%;
@@ -72,17 +96,20 @@ a:hover, a:active {
 	box-sizing: border-box;
 }
 #footer{
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	letter-spacing: 2px;
 	clear:both;
-	height: 50px;
+	height: auto;
 	width: 100%;
 	text-align: center;
-	background-color: dodgerblue;
+	background-color: darkgray;
 	color: white;
+	border-top: 2px solid black;
 	padding: 20px;
 	box-sizing: border-box;
 }
 #sidebar-left, #main, #sidebar-right{
-	min-height: 600px				
+	min-height: 550px				
 }
 
 
@@ -114,3 +141,4 @@ a:hover, a:active {
     background-color: #4CAF50;
     color: white;
 }
+
