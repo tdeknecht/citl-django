@@ -10,5 +10,5 @@ from . import views
 app_name = 'scorecard'
 
 urlpatterns = [
-	path('', views.IndexView.as_view(), name='index'),
+	path('', views.ScoreView.as_view(), name='score'),
 ]

@@ -5,22 +5,45 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'shooter/style.css' %}" />
 
 	<title>
-		CITL: {{ season.0.season_year }} Season
+		CITL: Shooters
 	</title>
 </head>
 
 <body>
-	<h1> {{ season.0.season_year }} Season </h1>
-	<table id="shooter_tables">
-		<tr>
-			<th>Team</th>
-		</tr>
-		{% for item in season %}
-		<tr>
-			<td><a href="{% url 'shooter:team' item.season_year item.team__team_name %}">{{ item.team__team_name }}</a></td>
-		</tr>
-		{% endfor %}
-	</table>
+	<div id="header">
+		<div class="citl-logo">Central Illinois Trap League</div>
+		<div class="citl-slogan">An Open Source Trap League</div>
+	</div>
+	
+	<div id="sidebar-left">
+		<a style="font-weight:bold;" href="{% url 'shooter:index' %}">Home</a>
+		<a href="http://www.darnalls.com/">Darnall's Gun Works</a>
+		<a href="http://www.google.com">Google</a>
+	</div>
+	
+	<div id="main" class="general-text">
+		<p>
+		<table id="shooter_tables">
+			<tr>
+				<th>Team</th>
+			</tr>
+			{% for item in season %}
+			<tr>
+				<td><a href="{% url 'shooter:team' item.season_year item.team__team_name %}">{{ item.team__team_name }}</a></td>
+			</tr>
+			{% endfor %}
+		</table>
+		</p>
+	</div>
+
+	<div id="sidebar-right">
+		Trophies Placeholder
+	</div>
+	
+	<div id="footer">
+		Central Illinois Trap League is an independently organized, non-discriminating shooting sport. We encourage families and friends to participate. 
+		We remind everyone to keep it legal by shooting with an adult if under age, or otherwise having a valid FOID card.
+	</div>
 	
 </body>
 </html>

@@ -18,5 +18,6 @@ from django.urls import path, include
 
 urlpatterns = [
 	path('shooter/', include('shooter.urls')),
+	path('scorecard/', include('scorecard.urls')),
     path('admin/', admin.site.urls),
 ]

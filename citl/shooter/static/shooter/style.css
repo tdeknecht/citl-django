@@ -118,12 +118,13 @@ a:hover, a:active {
 #shooter_tables {
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
     border-collapse: collapse;
-    width: 40%;
+    min-width: 40%;
 }
 
 #shooter_tables td, #shooter_tables th {
     border: 1px solid #ddd;
     padding: 8px;
+	padding-right: 30px;
 }
 
 #shooter_tables tr:nth-child(even) {
