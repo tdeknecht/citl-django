@@ -19,5 +19,6 @@ from django.urls import path, include
 urlpatterns = [
 	path('shooter/', include('shooter.urls')),
 	path('scorecard/', include('scorecard.urls')),
+	path('accounts/', include('django.contrib.auth.urls')),	# Add Django site authentication urls (for login, logout, password management)
     path('admin/', admin.site.urls),
 ]
