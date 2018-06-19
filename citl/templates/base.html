@@ -16,10 +16,11 @@
 	</div>
 	
 	<div id="sidebar-left">
-		<a style="font-weight:bold;" href="{% url 'shooter:index' %}">Home</a>
-		<a href="{% url 'login' %}">Login</a>
+		<a style="font-weight:bold;" href="{% url 'index' %}">Home</a>
+		<a href="{% url 'shooter:index' %}">Shooter</a>
 		<a href="http://www.darnalls.com/">Darnall's Gun Works</a>
-		<a href="http://www.google.com">Google</a>
+		<a href="{% url 'login' %}">Login</a>
+		<a href="{% url 'logout' %}">Logout</a>
 	</div>
 	
 	<div id="main" class="general-text">
@@ -27,8 +28,8 @@
 		{% endblock %}
 	</div>
 
-	<div id="sidebar-right">
-		Trophies Placeholder
+	<div id="sidebar-right" class="general-text">
+		Logged in as: {{ user }}
 	</div>
 	
 	<div id="footer">

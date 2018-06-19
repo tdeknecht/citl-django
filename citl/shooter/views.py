@@ -1,5 +1,6 @@
 # https://docs.djangoproject.com/en/2.0/intro/tutorial01/
 
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render
@@ -34,9 +35,12 @@ class SeasonView(View):
 		}
 		
 		return render(request, 'shooter/season.html', context)
-		
-class TeamView(View):
-	@login_required
+
+class TeamView(UserPassesTestMixin, View):
+
+	def test_func(self):
+		return self.request.user.groups.filter(name='League Administrators').exists()
+	
 	def get(self, request, year, team):
 	
 		team = Season.objects.values('season_year', 'team__team_name', 'shooter__first_name', 'shooter__last_name', 'shooter__average').filter(season_year=year, team__team_name=team)
