@@ -2,9 +2,8 @@
 
 import datetime
 
-from django.db import models
 from django.utils import timezone
-
+from django.db import models
 
 class Shooter(models.Model):
 
@@ -27,6 +26,16 @@ class Team(models.Model):
 		
 	team_name = models.CharField(max_length=100)
 	
+class Score(models.Model):
+
+	def __str__(self):
+		return str(self.date) + " " + str(self.week)
+		
+	date = models.DateField()
+	week = models.IntegerField()
+	bunker_one = models.IntegerField()
+	bunker_two = models.IntegerField()
+	
 class Season(models.Model):
 	
 	def __str__(self):
@@ -36,3 +45,4 @@ class Season(models.Model):
 	season_year = models.IntegerField()
 	shooter = models.ForeignKey(Shooter, on_delete=models.CASCADE)
 	team = models.ForeignKey(Team, on_delete=models.CASCADE)
+	score = models.ForeignKey(Score, on_delete=models.CASCADE)

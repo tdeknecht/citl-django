@@ -2,6 +2,6 @@
 
 from django.contrib import admin
 
-from .models import Shooter, Team, Season
+from .models import Shooter, Team, Season, Score
 
-admin.site.register([Shooter, Team, Season])
+admin.site.register([Shooter, Team, Season, Score])

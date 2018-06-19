@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.views import View
 from django.core import serializers
 
-from .models import Shooter, Season, Team
+from .models import Shooter, Season, Team, Score
 
 	
 class IndexView(View):	

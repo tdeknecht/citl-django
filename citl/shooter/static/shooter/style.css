@@ -15,7 +15,7 @@
 	line-height: 1;
 	font-size: 17px;
 	letter-spacing: 3px;
-	color: #555555;
+	color: #4CAF50;
 	display: block;
 	text-align: right;
 	top: 17px;
@@ -112,7 +112,6 @@ a:hover, a:active {
 	min-height: 550px				
 }
 
-
 /* Shooter Tables formatting */
 
 #shooter_tables {
@@ -142,4 +141,3 @@ a:hover, a:active {
     background-color: #4CAF50;
     color: white;
 }
-

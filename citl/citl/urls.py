@@ -21,7 +21,6 @@ from . import views
 urlpatterns = [
 	path('', views.IndexView.as_view(), name='index'),
 	path('shooter/', include('shooter.urls')),
-	path('scorecard/', include('scorecard.urls')),
 	path('accounts/', include('django.contrib.auth.urls')),	# Add Django site authentication urls (for login, logout, password management)
     path('admin/', admin.site.urls),
 ]

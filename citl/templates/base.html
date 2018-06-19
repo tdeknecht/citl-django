@@ -17,7 +17,7 @@
 	
 	<div id="sidebar-left">
 		<a style="font-weight:bold;" href="{% url 'index' %}">Home</a>
-		<a href="{% url 'shooter:index' %}">Shooter</a>
+		<a href="{% url 'shooter:index' %}">Seasons</a>
 		<a href="http://www.darnalls.com/">Darnall's Gun Works</a>
 		<a href="{% url 'login' %}">Login</a>
 		<a href="{% url 'logout' %}">Logout</a>
@@ -29,7 +29,7 @@
 	</div>
 
 	<div id="sidebar-right" class="general-text">
-		Logged in as: {{ user }}
+		Logged in as:<br> {{ user }}
 	</div>
 	
 	<div id="footer">
