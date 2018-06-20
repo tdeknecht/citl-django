@@ -25,20 +25,6 @@ class IndexView(View):
 		}		
 
 		return render(request, 'shooter/index.html', context)
-		
-		
-		#season = Season.objects.values('season_year','team__team_name').order_by('season_year').distinct()	
-	
-		# In this example, j is the object Shooter filtered based on name being Joe.
-		#j = Shooter.objects.get(first_name="Joe")
-		#joe = j.first_name
-		
-		# In this example I go straight for what I want out of the Shooter object, filtering on Jane
-		#jane = Shooter.objects.get(first_name="Jane").first_name
-		
-	#def post
-	#def put
-	#def delete
 	
 class SeasonView(View):	
 	def get(self, request, year):
@@ -52,10 +38,7 @@ class SeasonView(View):
 		
 		return render(request, 'shooter/season.html', context)
 
-class TeamView(UserPassesTestMixin, View):
-
-	def test_func(self):
-		return self.request.user.groups.filter(name='League Administrators').exists()
+class ScorecardView(View):
 	
 	def get(self, request, year, team):
 	
@@ -65,4 +48,17 @@ class TeamView(UserPassesTestMixin, View):
 			'team': team,
 		}
 		
-		return render(request, 'shooter/team.html', context)
+		return render(request, 'shooter/scorecard.html', context)
+		
+class ScoreEntry(UserPassesTestMixin, View):
+
+	def test_func(self):
+		return self.request.user.groups.filter(name='League Administrators').exists()
+		
+	def get(self, request, year):
+	
+		context = {
+			'test': "Hello World",
+		}
+		
+		return render(request, 'shooter/scoreentry.html', context)

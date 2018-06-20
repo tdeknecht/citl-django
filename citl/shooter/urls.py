@@ -7,7 +7,7 @@ from . import views
 app_name = 'shooter'
 
 urlpatterns = [
-	path('', views.IndexView.as_view(), name='index'),						# /shooter/
-	path('<int:year>/season/', views.SeasonView.as_view(), name='season'),	# /shooter/<year>/season
-	path('<int:year>/<team>/team/', views.TeamView.as_view(), name='team'),	# /shooter/<year>/<team>/team
+	path('', views.IndexView.as_view(), name='index'),							# /shooter/
+	path('<int:year>/season/', views.SeasonView.as_view(), name='season'),		# /shooter/<year>/season
+	path('<int:year>/<team>/scorecard/', views.ScorecardView.as_view(), name='scorecard'),	# /shooter/<year>/<team>/team
 ]

@@ -8,7 +8,7 @@
 			</tr>
 			{% for item in season %}
 			<tr>
-				<td><a href="{% url 'shooter:team' item.season item.team_name %}">{{ item.team_name }}</a></td>
+				<td><a href="{% url 'shooter:scorecard' item.season item.team_name %}">{{ item.team_name }}</a></td>
 			</tr>
 			{% endfor %}
 		</table>

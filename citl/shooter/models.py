@@ -33,8 +33,8 @@ class Score(models.Model):
 		
 	shooter = models.ForeignKey(Shooter, on_delete=models.CASCADE)
 	team = models.ForeignKey(Team, on_delete=models.CASCADE)
-	date = models.DateField()
-	week = models.IntegerField()
-	bunker_one = models.IntegerField()
-	bunker_two = models.IntegerField()
+	date = models.DateField(blank=True, null=True)
+	week = models.IntegerField(default=0)
+	bunker_one = models.IntegerField(default=0.0)
+	bunker_two = models.IntegerField(default=0.0)
 	average = models.FloatField(default=35.0)

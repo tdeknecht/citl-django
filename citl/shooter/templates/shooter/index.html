@@ -11,8 +11,7 @@
 				</tr>
 				{% for team in season.list %}
 					<tr>
-						{# <td><a href="{% url 'shooter:team' season.grouper team.team__team_name %}">{{ team.team__team_name }}</td> #}
-						<td><a href="{% url 'shooter:team' season.grouper team.team_name %}">{{ team.team_name }}</td>
+						<td><a href="{% url 'shooter:scorecard' season.grouper team.team_name %}">{{ team.team_name }}</td>
 					</tr>
 				{% endfor %}
 				</table>
