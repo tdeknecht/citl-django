@@ -14,35 +14,27 @@ class Shooter(models.Model):
 	first_name = models.CharField(max_length=50)
 	last_name = models.CharField(max_length=50)
 	email = models.EmailField(max_length=100)
-	rookie = models.BooleanField()
-	guest = models.BooleanField()
-	captain = models.BooleanField(default=False)
-	average = models.FloatField()
+	rookie = models.BooleanField(default=False)
+	guest = models.BooleanField(default=False)
 	
 class Team(models.Model):
 
 	def __str__(self):
-		return self.team_name
-		
+		return str(self.season) + ":" + self.team_name
+
 	team_name = models.CharField(max_length=100)
+	captain = models.ForeignKey(Shooter, blank=True, null=True, on_delete=models.CASCADE)
+	season = models.IntegerField()
 	
 class Score(models.Model):
 
 	def __str__(self):
 		return str(self.date) + " " + str(self.week)
 		
+	shooter = models.ForeignKey(Shooter, on_delete=models.CASCADE)
+	team = models.ForeignKey(Team, on_delete=models.CASCADE)
 	date = models.DateField()
 	week = models.IntegerField()
 	bunker_one = models.IntegerField()
 	bunker_two = models.IntegerField()
-	
-class Season(models.Model):
-	
-	def __str__(self):
-		return str(self.season_year) + " " + str(self.shooter)
-		#return str(self.season_year)
-		
-	season_year = models.IntegerField()
-	shooter = models.ForeignKey(Shooter, on_delete=models.CASCADE)
-	team = models.ForeignKey(Team, on_delete=models.CASCADE)
-	score = models.ForeignKey(Score, on_delete=models.CASCADE)
+	average = models.FloatField(default=35.0)

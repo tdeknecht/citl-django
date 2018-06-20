@@ -12,11 +12,11 @@
 			</tr>
 			{% for item in team %}
 			<tr>
-				<td>{{ item.season_year }}</td>
+				<td>{{ item.team__season }}</td>
 				<td>{{ item.team__team_name }}</td>
 				<td>{{ item.shooter__first_name }}</td>
 				<td>{{ item.shooter__last_name }}</td>
-				<td>{{ item.shooter__average }}</td>
+				<td>{{ item.average }}</td>
 			</tr>
 			{% endfor %}
 		</table>

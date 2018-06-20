@@ -4,11 +4,11 @@
 		<p>
 		<table id="shooter_tables">
 			<tr>
-				<th>Team</th>
+				<th>{{ year }} Season</th>
 			</tr>
 			{% for item in season %}
 			<tr>
-				<td><a href="{% url 'shooter:team' item.season_year item.team__team_name %}">{{ item.team__team_name }}</a></td>
+				<td><a href="{% url 'shooter:team' item.season item.team_name %}">{{ item.team_name }}</a></td>
 			</tr>
 			{% endfor %}
 		</table>
