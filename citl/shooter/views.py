@@ -42,10 +42,14 @@ class ScorecardView(View):
 	
 	def get(self, request, year, team):
 	
-		team = Score.objects.values('team__season', 'team__team_name', 'shooter__first_name', 'shooter__last_name', 'average').filter(team__season=year, team__team_name=team)
+		scores = Score.objects.values('shooter__first_name', 'shooter__last_name', 'average').filter(team__season=year, team__team_name=team)
+		team = team
 		
 		context = {
+			'scores': scores,
 			'team': team,
+			'range': range(1,16),
+			'season': year,
 		}
 		
 		return render(request, 'shooter/scorecard.html', context)

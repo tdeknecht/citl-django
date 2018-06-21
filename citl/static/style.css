@@ -43,7 +43,7 @@ a:hover, a:active {
 
 /* Page layout styles */
 
-#header{
+#header {
 	background-color: white;
 	width:100%;
 	text-align: left;
@@ -52,6 +52,14 @@ a:hover, a:active {
 	border-bottom: solid;
 	padding-top: 10px;
 	box-sizing: border-box;
+}
+
+#team-header {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 25px;
+	letter-spacing: 2px;
+	color: #4CAF50;
+	margin: 0px;
 }
 
 #sidebar-left{
@@ -81,21 +89,21 @@ a:hover, a:active {
     color: white;
 }
 
-#main{
+#main {
 	float:left;
 	width:70%;
 	background-color: white;
 	padding: 20px;
 	box-sizing: border-box;
 }
-#sidebar-right{
+#sidebar-right {
 	float:left;
 	width:15%;
 	background-color: white;
 	padding: 20px;
 	box-sizing: border-box;
 }
-#footer{
+#footer {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 	letter-spacing: 2px;
 	clear:both;
@@ -114,30 +122,76 @@ a:hover, a:active {
 
 /* Shooter Tables formatting */
 
-#shooter_tables {
+#shooter-tables {
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 17px;
     border-collapse: collapse;
-    min-width: 40%;
+    min-width: 60%;
 }
 
-#shooter_tables td, #shooter_tables th {
+#shooter-tables td, #shooter-tables th {
     border: 1px solid #ddd;
-    padding: 8px;
-	padding-right: 30px;
+    padding: 10px;
+	padding-right: 20px;
 }
 
-#shooter_tables tr:nth-child(even) {
+#shooter-tables tr:nth-child(even) {
 	background-color: #f2f2f2;
 }
 
-#shooter_tables tr:hover {
+#shooter-tables tr:hover {
 	background-color: #ddd;
 }
 
-#shooter_tables th {
-    padding-top: 12px;
-    padding-bottom: 12px;
+#shooter-tables th {
     text-align: left;
     background-color: #4CAF50;
     color: white;
+}
+
+/* Scorecard Tables */
+
+#scorecard-tables {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	text-align: center;
+	border-collapse: collapse;
+	overflow-x: auto;
+	table-layout: auto;
+	width: 100%;
+}
+	
+#scorecard-tables td, #scorecard-tables th {
+    border: 1px solid #ddd;
+}
+
+#scorecard-tables tr:nth-child(even) {
+	background-color: #f2f2f2;
+}
+
+#scorecard-tables td:first-child, #scorecard-tables th:first-child {
+	text-align: left;
+	width: 20%;
+}
+
+#scorecard-tables td:nth-child(n+3):nth-child(-n+17), #scorecard-tables th:nth-child(n+3):nth-child(-n+17) {
+	font-size: 12px;
+	width: 5%;
+}
+
+#scorecard-tables tr:hover {
+	background-color: #ddd;
+}
+
+#scorecard-tables tr {
+	height: 35px;
+}
+
+#scorecard-tables th {
+	font-size: 17px;
+    background-color: #4CAF50;
+    color: white;
+}
+
+#scorecard-tables td {
+	font-size: 12px;
 }

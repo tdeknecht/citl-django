@@ -5,7 +5,7 @@
 		{% for season in season_list %}
 			{% if season.grouper == current_year %}
 				<p>
-				<table id="shooter_tables">
+				<table id="shooter-tables">
 				<tr>
 					<th>{{ season.grouper }} Season</a></th>
 				</tr>
@@ -17,7 +17,7 @@
 				</table>
 				</p>
 			{% else %}
-				<table id="shooter_tables">
+				<table id="shooter-tables">
 				<tr>
 					<th><a href="{% url 'shooter:season' season.grouper %}">{{ season.grouper }} Season</a></th>
 				</tr>

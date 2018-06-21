@@ -29,7 +29,7 @@ class Team(models.Model):
 class Score(models.Model):
 
 	def __str__(self):
-		return str(self.date) + " " + str(self.week)
+		return str(self.date) + " " + str(self.week) + ":" + self.shooter.first_name
 		
 	shooter = models.ForeignKey(Shooter, on_delete=models.CASCADE)
 	team = models.ForeignKey(Team, on_delete=models.CASCADE)
