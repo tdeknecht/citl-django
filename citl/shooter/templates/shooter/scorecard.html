@@ -1,31 +1,41 @@
 {% extends 'base.html' %}
 
-{% block content %}<!--
-		{% for item in scores %}
-			{{ item }}<br>
+{% block content %}
+		<!--<p>
+		{% for item in persons %}
+			{# item.shooter.first_name #}
+			{{ item.shooter }}
+			<br>
 		{% endfor %}
-		<br>-->
-		<div id="team-header">{{ team }}</div>
+		</p>-->
+		<p>
+		{% for item in scores %}
+			{{ item }} <br>
+		{% endfor %}
+		</p>
+		
+		<br>
+		<div id="team-header">
+			{{ team }}
+		</div>
 		Currently in 1st Place
 		<p>
 		<table id="scorecard-tables">
 			<tr>
 				<th>Member</th>
-				<th>Rookie</th>
 				{% for n in range %}
 					<th>W{{ n }} </th>
 				{% endfor %}
 				<th>Weeks Shot</th>
 				<th>Current Average</th>
 			</tr>
-			{% for item in scores %}
+			{% for item in persons %}
 			<tr>
-				<td>{{ item.shooter__first_name }} {{ item.shooter__last_name }}</td>
-				<td>R</td>
+				<td>{{ item.shooter.first_name }} {{ item.shooter.last_name }}</td>
 				{% for n in range %}
-					<td align="center">0</td>
+					<td align="center"></td>
 				{% endfor %}
-				<td>1</td>
+				<td></td>
 				<td>{{ item.average }}</td>
 			</tr>
 			{% endfor %}

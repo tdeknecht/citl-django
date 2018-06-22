@@ -42,15 +42,31 @@ class ScorecardView(View):
 	
 	def get(self, request, year, team):
 	
-		scores = Score.objects.values('shooter__first_name', 'shooter__last_name', 'average').filter(team__season=year, team__team_name=team)
-		team = team
+		persons = set()
+
+		scores = Score.objects \
+				.values('shooter__first_name', 'team__season', 'team__captain__first_name') \
+				.filter(team__season=year, team__team_name=team) \
+				.order_by('shooter__first_name', 'week')
+		
+		for person in Score.objects.all().select_related().filter(team__season=year, team__team_name=team):
+			persons.add(person)
 		
 		context = {
 			'scores': scores,
+			'persons': persons,
 			'team': team,
 			'range': range(1,16),
 			'season': year,
 		}
+		
+		
+		# In this example, j is the object Shooter filtered based on name being Joe.
+		#j = Shooter.objects.get(first_name="Joe")
+		#joe = j.first_name
+		
+		# In this example I go straight for what I want out of the Shooter object, filtering on Jane
+		#jane = Shooter.objects.get(first_name="Jane").first_name
 		
 		return render(request, 'shooter/scorecard.html', context)
 		

@@ -4,7 +4,6 @@
 		{% regroup all_season by season as season_list %}
 		{% for season in season_list %}
 			{% if season.grouper == current_year %}
-				<p>
 				<table id="shooter-tables">
 				<tr>
 					<th>{{ season.grouper }} Season</a></th>
@@ -15,7 +14,7 @@
 					</tr>
 				{% endfor %}
 				</table>
-				</p>
+				<br>
 			{% else %}
 				<table id="shooter-tables">
 				<tr>

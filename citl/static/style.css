@@ -1,3 +1,24 @@
+/* Tag overwrite */
+
+body {
+	/*overflow:hidden;*/
+	margin: 0;
+	padding: 0;
+	height: 80vh;
+}
+
+a:link, a:visited {
+	text-decoration: none;
+	color: inherit;
+}
+
+a:hover, a:active {
+    text-decoration: none;
+	color: green;
+}
+
+/* ID's */
+
 .citl-logo {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 	text-decoration: none;
@@ -23,22 +44,11 @@
 
 .general-text {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 15px;
 	text-decoration: none;
 	color: inherit;
 	letter-spacing: 1px;
 	text-transform: uppercase;
-}
-
-/* Global CSS */
-
-a:link, a:visited {
-	text-decoration: none;
-	color: inherit;
-}
-
-a:hover, a:active {
-    text-decoration: none;
-	color: green;
 }
 
 /* Page layout styles */
@@ -50,7 +60,9 @@ a:hover, a:active {
 	text-transform: uppercase;
 	color: black;
 	border-bottom: solid;
-	padding-top: 10px;
+	padding-top: 15px;
+	padding-left: 10px;
+	padding-right: 10px;
 	box-sizing: border-box;
 }
 
@@ -62,11 +74,19 @@ a:hover, a:active {
 	margin: 0px;
 }
 
-#sidebar-left{
+#sidebar-left {
 	float:left;
 	width:15%;
 	background-color: #f2f2f2;
 	padding: 0px;
+	box-sizing: border-box;
+}
+
+#sidebar-right {
+	float:left;
+	width:15%;
+	background-color: white;
+	padding: 10px;
 	box-sizing: border-box;
 }
 
@@ -90,34 +110,38 @@ a:hover, a:active {
 }
 
 #main {
-	float:left;
+	float: left;
 	width:70%;
 	background-color: white;
-	padding: 20px;
 	box-sizing: border-box;
 }
-#sidebar-right {
-	float:left;
-	width:15%;
+
+#content {
+	width:100%;
 	background-color: white;
 	padding: 20px;
 	box-sizing: border-box;
+	position: relative;
+	overflow-x: auto;
 }
+
 #footer {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 	letter-spacing: 2px;
-	clear:both;
-	height: auto;
 	width: 100%;
 	text-align: center;
-	background-color: darkgray;
-	color: white;
 	border-top: 2px solid black;
 	padding: 20px;
 	box-sizing: border-box;
+	text-transform: lowercase;
+	font-size: 12px;
+	color: #555555;
+	clear: both;
 }
-#sidebar-left, #main, #sidebar-right{
-	min-height: 550px				
+
+#sidebar-left, #sidebar-right, #main {
+	min-height: 100%;
+	box-sizing: border-box;
 }
 
 /* Shooter Tables formatting */
@@ -153,11 +177,22 @@ a:hover, a:active {
 
 #scorecard-tables {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 12px;
 	text-align: center;
 	border-collapse: collapse;
-	overflow-x: auto;
 	table-layout: auto;
 	width: 100%;
+}
+
+#scorecard-tables tr {
+	height: 35px;
+}
+
+#scorecard-tables th {
+	padding: 3px;
+	font-size: 15px;
+    background-color: #4CAF50;
+    color: white;
 }
 	
 #scorecard-tables td, #scorecard-tables th {
@@ -168,30 +203,17 @@ a:hover, a:active {
 	background-color: #f2f2f2;
 }
 
-#scorecard-tables td:first-child, #scorecard-tables th:first-child {
+#scorecard-tables td:first-child {
 	text-align: left;
 	width: 20%;
+	padding-left: 5px;
+	font-size: 13px;
 }
 
-#scorecard-tables td:nth-child(n+3):nth-child(-n+17), #scorecard-tables th:nth-child(n+3):nth-child(-n+17) {
-	font-size: 12px;
+#scorecard-tables td:nth-child(n+2):nth-child(-n+16), #scorecard-tables th:nth-child(n+2):nth-child(-n+16) {
 	width: 5%;
 }
 
 #scorecard-tables tr:hover {
 	background-color: #ddd;
-}
-
-#scorecard-tables tr {
-	height: 35px;
-}
-
-#scorecard-tables th {
-	font-size: 17px;
-    background-color: #4CAF50;
-    color: white;
-}
-
-#scorecard-tables td {
-	font-size: 12px;
 }
