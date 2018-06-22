@@ -45,15 +45,27 @@ class ScorecardView(View):
 		persons = set()
 
 		scores = Score.objects \
-				.values('shooter__first_name', 'team__season', 'team__captain__first_name') \
+				.values('shooter__first_name', 'team__season', 'team__captain__first_name', 'week', 'bunker_one', 'bunker_two') \
 				.filter(team__season=year, team__team_name=team) \
 				.order_by('shooter__first_name', 'week')
+				
+		scorecard = {}
+		
+		for score in scores:
+			personName = score['shooter__first_name']
+			if personName not in scorecard:
+				scorecard[personName] = { 'weeks': [] }
+			
+			scorecard[personName]['weeks'].append({
+				score['week']: score['bunker_one'] + score['bunker_two']
+			})
+			
 		
 		for person in Score.objects.all().select_related().filter(team__season=year, team__team_name=team):
 			persons.add(person)
 		
 		context = {
-			'scores': scores,
+			'scores': scorecard,
 			'persons': persons,
 			'team': team,
 			'range': range(1,16),

@@ -1,20 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-		<!--<p>
-		{% for item in persons %}
-			{# item.shooter.first_name #}
-			{{ item.shooter }}
-			<br>
-		{% endfor %}
-		</p>-->
+		{# {'AMELIA': {'WEEKS': [{1: 24}, {2: 45}]}} #}
 		<p>
-		{% for item in scores %}
-			{{ item }} <br>
+		{% for key, value in scores.items %}
+			{{ key }}
+			{% for week in value.weeks %}
+				{{ week }}
+			{% endfor %}<br>
 		{% endfor %}
 		</p>
 		
-		<br>
 		<div id="team-header">
 			{{ team }}
 		</div>
