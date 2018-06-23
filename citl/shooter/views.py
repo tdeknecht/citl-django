@@ -39,46 +39,35 @@ class SeasonView(View):
 		return render(request, 'shooter/season.html', context)
 
 class ScorecardView(View):
-	
 	def get(self, request, year, team):
 	
-		persons = set()
+		weekRange = range(1,16)
 
 		scores = Score.objects \
-				.values('shooter__first_name', 'team__season', 'team__captain__first_name', 'week', 'bunker_one', 'bunker_two') \
+				.values('shooter__first_name', 'shooter__last_name', 'team__season', 'team__captain__first_name', 'week', 'bunker_one', 'bunker_two') \
 				.filter(team__season=year, team__team_name=team) \
 				.order_by('shooter__first_name', 'week')
 				
 		scorecard = {}
 		
 		for score in scores:
-			personName = score['shooter__first_name']
+			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
+			w = score['week']
 			if personName not in scorecard:
-				scorecard[personName] = { 'weeks': [] }
+				#scorecard[personName] = { 'weeks': [] }
+				scorecard[personName] = dict.fromkeys(weekRange)
 			
-			scorecard[personName]['weeks'].append({
-				score['week']: score['bunker_one'] + score['bunker_two']
-			})
-			
-		
-		for person in Score.objects.all().select_related().filter(team__season=year, team__team_name=team):
-			persons.add(person)
+			scorecard[personName][w] = score['bunker_one'] + score['bunker_two']
+			#scorecard[personName]['weeks'].append({
+			#	score['week']: score['bunker_one'] + score['bunker_two']
+			#})
 		
 		context = {
 			'scores': scorecard,
-			'persons': persons,
 			'team': team,
-			'range': range(1,16),
+			'weekRange': weekRange,
 			'season': year,
 		}
-		
-		
-		# In this example, j is the object Shooter filtered based on name being Joe.
-		#j = Shooter.objects.get(first_name="Joe")
-		#joe = j.first_name
-		
-		# In this example I go straight for what I want out of the Shooter object, filtering on Jane
-		#jane = Shooter.objects.get(first_name="Jane").first_name
 		
 		return render(request, 'shooter/scorecard.html', context)
 		

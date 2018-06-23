@@ -1,16 +1,6 @@
 {% extends 'base.html' %}
 
 {% block content %}
-		{# {'AMELIA': {'WEEKS': [{1: 24}, {2: 45}]}} #}
-		<p>
-		{% for key, value in scores.items %}
-			{{ key }}
-			{% for week in value.weeks %}
-				{{ week }}
-			{% endfor %}<br>
-		{% endfor %}
-		</p>
-		
 		<div id="team-header">
 			{{ team }}
 		</div>
@@ -19,20 +9,20 @@
 		<table id="scorecard-tables">
 			<tr>
 				<th>Member</th>
-				{% for n in range %}
+				{% for n in weekRange %}
 					<th>W{{ n }} </th>
 				{% endfor %}
 				<th>Weeks Shot</th>
 				<th>Current Average</th>
 			</tr>
-			{% for item in persons %}
+			{% for name, weeks in scores.items %}
 			<tr>
-				<td>{{ item.shooter.first_name }} {{ item.shooter.last_name }}</td>
-				{% for n in range %}
-					<td align="center"></td>
+				<td>{{ name }}</td>
+				{% for w, s in weeks.items %}
+					<td>{{ s }}</td>
 				{% endfor %}
-				<td></td>
-				<td>{{ item.average }}</td>
+				<td> 0 </td>
+				<td> 0 </td>
 			</tr>
 			{% endfor %}
 		</table>
