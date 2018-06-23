@@ -2,6 +2,8 @@
 
 import datetime
 
+from collections import Counter
+
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
@@ -44,20 +46,20 @@ class ScorecardView(View):
 		weekRange = range(1,16)
 
 		scores = Score.objects \
-				.values('shooter__first_name', 'shooter__last_name', 'team__season', 'team__captain__first_name', 'week', 'bunker_one', 'bunker_two') \
+				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', 'average', \
+					'team__captain__first_name', 'team__captain__last_name' ) \
 				.filter(team__season=year, team__team_name=team) \
 				.order_by('shooter__first_name', 'week')
 				
 		scorecard = {}
-		
 		for score in scores:
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
-			w = score['week']
 			if personName not in scorecard:
 				#scorecard[personName] = { 'weeks': [] }
-				scorecard[personName] = dict.fromkeys(weekRange)
+				scorecard[personName] = { 'weeks': dict.fromkeys(weekRange,'-'), 'count': 0, 'average': score['average'] }
 			
-			scorecard[personName][w] = score['bunker_one'] + score['bunker_two']
+			scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
+			scorecard[personName]['count'] += 1
 			#scorecard[personName]['weeks'].append({
 			#	score['week']: score['bunker_one'] + score['bunker_two']
 			#})

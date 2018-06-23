@@ -42,6 +42,10 @@ a:hover, a:active {
 	top: 17px;
 }
 
+.user-id {
+	text-transform: lowercase;
+}
+
 .general-text {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 	font-size: 15px;
