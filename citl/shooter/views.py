@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render
 from django.views import View
+from django.http import HttpResponseRedirect
 from django.core import serializers
 
 from .models import Shooter, Team, Score
@@ -55,14 +56,10 @@ class ScorecardView(View):
 		for score in scores:
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
 			if personName not in scorecard:
-				#scorecard[personName] = { 'weeks': [] }
 				scorecard[personName] = { 'weeks': dict.fromkeys(weekRange,'-'), 'count': 0, 'average': score['average'] }
 			
 			scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
 			scorecard[personName]['count'] += 1
-			#scorecard[personName]['weeks'].append({
-			#	score['week']: score['bunker_one'] + score['bunker_two']
-			#})
 		
 		context = {
 			'scores': scorecard,
@@ -73,15 +70,37 @@ class ScorecardView(View):
 		
 		return render(request, 'shooter/scorecard.html', context)
 		
-class ScoreEntry(UserPassesTestMixin, View):
+class AdministrationView(UserPassesTestMixin, View):
 
 	def test_func(self):
 		return self.request.user.groups.filter(name='League Administrators').exists()
 		
-	def get(self, request, year):
+	def get(self, request):
 	
 		context = {
 			'test': "Hello World",
 		}
 		
-		return render(request, 'shooter/scoreentry.html', context)
+		return render(request, 'shooter/administration.html', context)
+	
+# TODO: Get UserPassesTest involved here. Turn this into a class if possible, for consistency
+from .forms import TeamForm
+def get_team(request):
+
+	if request.method == 'POST':
+		form = TeamForm(request.POST)
+
+		if form.is_valid():
+			new_team = Team(team_name=form.cleaned_data['team_name'], season=form.cleaned_data['season'])
+			new_team.save()
+			
+			return HttpResponseRedirect('/shooter/administration/', {'message': "Team Saved"})
+
+	else:
+		form = TeamForm()
+		
+	context = {
+		'form': form,
+	}
+
+	return render(request, 'shooter/team.html', context)

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<div class="general-text">
+		<div id="main-header">
+			New Team
+		</div>
+		{% if message %}
+			{{ message }}
+		{% endif %}
+		<form action="{% url 'shooter:team' %}" method="post">
+		{% csrf_token %}
+		{{ form.name.errors }}
+		{{ form }}
+		<input class="button" type="submit" value="Submit">
+		</form>
+	</div>
+{% endblock %}

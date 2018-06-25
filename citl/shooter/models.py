@@ -19,8 +19,8 @@ class Shooter(models.Model):
 	
 class Team(models.Model):
 
-	#def __str__(self):
-	#	return str(self.season) + ":" + self.team_name
+	def __str__(self):
+		return str(self.season) + ":" + self.team_name
 
 	team_name = models.CharField(max_length=100)
 	captain = models.ForeignKey(Shooter, blank=True, null=True, on_delete=models.CASCADE)

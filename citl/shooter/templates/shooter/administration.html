@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<div class="general-text">
+		<div id="main-header">
+			<a href="{% url 'shooter:team' %}">New Team</a>
+		</div> <!--
+		<form action="{% url 'shooter:administration' %}" method="post">
+		{% csrf_token %}
+		New team name:
+		<input type="text" name="teamname">
+		Season:
+		<input type="number" name="year">
+		<input class="button" type="submit" value="Submit New Team">
+		</form> -->
+	</div>
+	<div class="general-text">
+		<div id="main-header">
+			New Shooter
+		</div>
+	</div>
+	<div class="general-text">
+		<div id="main-header">
+			New Score
+		</div>
+	</div>
+{% endblock %}

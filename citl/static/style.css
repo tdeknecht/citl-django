@@ -53,6 +53,25 @@ a:hover, a:active {
 	color: inherit;
 	letter-spacing: 1px;
 	text-transform: uppercase;
+	padding-bottom: 30px;
+}
+
+.button {
+    background-color: #4CAF50;
+    border: none;
+	border-radius: 8px;
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 15px;
+	text-decoration: none;
+	color: white;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+    padding: 7px 20px;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
 }
 
 /* Page layout styles */
@@ -70,7 +89,7 @@ a:hover, a:active {
 	box-sizing: border-box;
 }
 
-#team-header {
+#main-header {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 	font-size: 25px;
 	letter-spacing: 2px;
