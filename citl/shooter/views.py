@@ -7,6 +7,7 @@ from collections import Counter
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
+from django.contrib import messages
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponseRedirect
@@ -70,6 +71,8 @@ class ScorecardView(View):
 		
 		return render(request, 'shooter/scorecard.html', context)
 		
+#TODO: class StandingsView(View):
+		
 class AdministrationView(UserPassesTestMixin, View):
 
 	def test_func(self):
@@ -84,9 +87,57 @@ class AdministrationView(UserPassesTestMixin, View):
 		return render(request, 'shooter/administration.html', context)
 	
 # TODO: Get UserPassesTest involved here. Turn this into a class if possible, for consistency
+from django.views.generic.edit import FormView
 from .forms import TeamForm
-def get_team(request):
 
+class TeamFormView(UserPassesTestMixin, FormView):
+
+	def test_func(self):
+		return self.request.user.groups.filter(name='League Administrators').exists()
+
+	template_name = 'shooter/newteam.html'
+	form_class = TeamForm
+	success_url = '/shooter/administration/newteam/'
+	
+	def get_context_data(self, **kwargs):	# provides context for form_invalid by overriding the default get_context_data method
+	
+		test = "Hello World"
+	
+		if 'context_key' not in kwargs:  # set value if not present
+			kwargs['test'] = test
+			
+		return super().get_context_data(**kwargs)
+
+	def form_valid(self, form):
+	
+		response = super().form_valid(form)
+		
+		c_team_name = form.cleaned_data['team_name']
+		c_season	= form.cleaned_data['season']
+		message		= c_team_name + " successfully added to " + str(c_season) + " season"
+	
+		new_team = Team(team_name=c_team_name, season=c_season)
+		new_team.save()
+		
+		messages.add_message(self.request, messages.INFO, message)
+		
+		return response
+		
+	def form_invalid(self, form):
+	
+		response = super().form_invalid(form)
+		
+		form = TeamForm()
+		
+		return response
+		
+#class ShooterFormView(UserPassesTestMixin, FormView):
+
+#	def test_func(self):
+#		return self.request.user.groups.filter(name='League Administrators').exists()
+
+"""
+def get_team(request):
 	if request.method == 'POST':
 		form = TeamForm(request.POST)
 
@@ -104,3 +155,4 @@ def get_team(request):
 	}
 
 	return render(request, 'shooter/team.html', context)
+"""
