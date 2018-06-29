@@ -4,19 +4,11 @@
 	<div class="general-text">
 		<div id="main-header">
 			<a href="{% url 'shooter:newteam' %}">New Team</a>
-		</div> <!--
-		<form action="{% url 'shooter:administration' %}" method="post">
-		{% csrf_token %}
-		New team name:
-		<input type="text" name="teamname">
-		Season:
-		<input type="number" name="year">
-		<input class="button" type="submit" value="Submit New Team">
-		</form> -->
+		</div>
 	</div>
 	<div class="general-text">
 		<div id="main-header">
-			TODO: New Shooter
+			<a href="{% url 'shooter:newshooter' %}">New Shooter</a>
 		</div>
 	</div>
 	<div class="general-text">

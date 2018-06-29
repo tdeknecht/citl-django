@@ -12,6 +12,6 @@ urlpatterns = [
 	path('<int:year>/<team>/scorecard/', views.ScorecardView.as_view(), name='scorecard'),	# /shooter/<year>/<team>/team
 	path('administration/', views.AdministrationView.as_view(), name='administration'),		# /shooter/administration
 	path('administration/newteam/', views.TeamFormView.as_view(), name='newteam'),
-	#path('administration/shooter/', views.ShooterFormView.as_view(), name='shooter'),
+	path('administration/newshooter/', views.ShooterFormView.as_view(), name='newshooter'),
 	#path('team/', views.get_team, name='team'),
 ]

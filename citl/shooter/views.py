@@ -9,12 +9,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.shortcuts import render
+from django.views.generic.edit import FormView
 from django.views import View
 from django.http import HttpResponseRedirect
 from django.core import serializers
 
 from .models import Shooter, Team, Score
-
+from .forms import TeamForm, ShooterForm, ScoreForm
 	
 class IndexView(View):	
 	def get(self, request):
@@ -85,10 +86,8 @@ class AdministrationView(UserPassesTestMixin, View):
 		}
 		
 		return render(request, 'shooter/administration.html', context)
-	
-# TODO: Get UserPassesTest involved here. Turn this into a class if possible, for consistency
-from django.views.generic.edit import FormView
-from .forms import TeamForm
+		
+# FORMS
 
 class TeamFormView(UserPassesTestMixin, FormView):
 
@@ -98,15 +97,6 @@ class TeamFormView(UserPassesTestMixin, FormView):
 	template_name = 'shooter/newteam.html'
 	form_class = TeamForm
 	success_url = '/shooter/administration/newteam/'
-	
-	def get_context_data(self, **kwargs):	# provides context for form_invalid by overriding the default get_context_data method
-	
-		test = "Hello World"
-	
-		if 'context_key' not in kwargs:  # set value if not present
-			kwargs['test'] = test
-			
-		return super().get_context_data(**kwargs)
 
 	def form_valid(self, form):
 	
@@ -131,28 +121,83 @@ class TeamFormView(UserPassesTestMixin, FormView):
 		
 		return response
 		
-#class ShooterFormView(UserPassesTestMixin, FormView):
+class ShooterFormView(UserPassesTestMixin, FormView):
 
-#	def test_func(self):
-#		return self.request.user.groups.filter(name='League Administrators').exists()
+	def test_func(self):
+		return self.request.user.groups.filter(name='League Administrators').exists()
 
-"""
-def get_team(request):
-	if request.method == 'POST':
-		form = TeamForm(request.POST)
-
-		if form.is_valid():
-			new_team = Team(team_name=form.cleaned_data['team_name'], season=form.cleaned_data['season'])
-			new_team.save()
-			
-			return HttpResponseRedirect('/shooter/administration/', {'message': "Team Saved"})
-
-	else:
-		form = TeamForm()
+	template_name = 'shooter/newshooter.html'
+	form_class = ShooterForm
+	success_url = '/shooter/administration/newshooter/'
 		
-	context = {
-		'form': form,
-	}
+	def form_valid(self, form):
+	
+		response = super().form_valid(form)
+		
+		c_first_name 	= form.cleaned_data['first_name']
+		c_last_name		= form.cleaned_data['last_name']
+		c_email			= form.cleaned_data['email']
+		c_rookie		= form.cleaned_data['rookie']
+		c_guest			= form.cleaned_data['guest']
+		
+		shooter_object = Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists()
+		
+		if shooter_object:
+			message = "ERROR: " + c_first_name + " " + c_last_name + " already exists"
+		else:
+			new_shooter 	= Shooter(first_name = c_first_name,
+								last_name = c_last_name,
+								email = c_email,
+								rookie = c_rookie,
+								guest = c_guest
+								)
+			new_shooter.save()
+			message		= c_first_name + " " + c_last_name + " successfully added"
+		
+		messages.add_message(self.request, messages.INFO, message)
+		
+		return response
+		
+	def form_invalid(self, form):
+	
+		response = super().form_invalid(form)
+		
+		form = ShooterForm()
+		
+		return response
 
-	return render(request, 'shooter/team.html', context)
-"""
+class ScoreFormView(UserPassesTestMixin, FormView):
+
+	def test_func(self):
+		return self.request.user.groups.filter(name='League Administrators').exists()
+
+	template_name = 'shooter/newscore.html'
+	form_class = ScoreForm
+	success_url = '/shooter/administration/newscore/'
+	
+	def get_context_data(self, **kwargs):	# provides context for form_invalid by overriding the default get_context_data method
+	
+		test = "Hello World"
+	
+		if 'context_key' not in kwargs:  # set value if not present
+			kwargs['test'] = test
+			
+		return super().get_context_data(**kwargs)
+		
+	def form_valid(self, form):
+	
+		response = super().form_valid(form)
+		
+		message = "Temp message"
+		
+		messages.add_message(self.request, messages.INFO, message)
+		
+		return response
+		
+	def form_invalid(self, form):
+	
+		response = super().form_invalid(form)
+		
+		form = ScoreForm()
+		
+		return response
