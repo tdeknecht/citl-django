@@ -5,6 +5,7 @@
 		<div id="main-header">
 			New Season
 		</div>
+		<p>
 		<form action="{% url 'shooter:newteam' %}" method="post">
 		{% csrf_token %}
 		{{ form.management_form }}
@@ -13,6 +14,7 @@
 		{% endfor %}
 		<input class="button" type="submit" value="Submit">
 		</form>
+		</p>
 		<p>
 		{% if messages %}
 			{% for m in messages %}
