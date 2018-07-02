@@ -9,15 +9,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.shortcuts import render
-from django.views.generic.edit import FormView
+from django.forms import formset_factory, modelformset_factory, inlineformset_factory
+from django.views.generic.edit import FormView, CreateView
 from django.views import View
 from django.http import HttpResponseRedirect
 from django.core import serializers
 
 from .models import Shooter, Team, Score
-from .forms import TeamForm, ShooterForm, ScoreForm
+from .forms import TeamForm, BaseTeamFormSet, ShooterForm, ScoreForm
 	
-class IndexView(View):	
+class SeasonsView(View):	
 	def get(self, request):
 	
 		all_season = Team.objects.values('season', 'team_name').order_by('-season').distinct()
@@ -29,7 +30,7 @@ class IndexView(View):
 			'current_year': now.year,
 		}		
 
-		return render(request, 'shooter/index.html', context)
+		return render(request, 'shooter/seasons.html', context)
 	
 class SeasonView(View):	
 	def get(self, request, year):
@@ -72,8 +73,6 @@ class ScorecardView(View):
 		
 		return render(request, 'shooter/scorecard.html', context)
 		
-#TODO: class StandingsView(View):
-		
 class AdministrationView(UserPassesTestMixin, View):
 
 	def test_func(self):
@@ -81,15 +80,22 @@ class AdministrationView(UserPassesTestMixin, View):
 		
 	def get(self, request):
 	
+		now = datetime.datetime.now()
+	
+		this_season = Team.objects.values('team_name').order_by('team_name').filter(season=now.year)
+	
 		context = {
-			'test': "Hello World",
-		}
+			'this_season': this_season,
+			'current_year': now.year,
+		}	
 		
 		return render(request, 'shooter/administration.html', context)
 		
 # FORMS
 
 class TeamFormView(UserPassesTestMixin, FormView):
+	"""Form used to submit new Teams
+	"""
 
 	def test_func(self):
 		return self.request.user.groups.filter(name='League Administrators').exists()
@@ -104,10 +110,19 @@ class TeamFormView(UserPassesTestMixin, FormView):
 		
 		c_team_name = form.cleaned_data['team_name']
 		c_season	= form.cleaned_data['season']
-		message		= c_team_name + " successfully added to " + str(c_season) + " season"
-	
-		new_team = Team(team_name=c_team_name, season=c_season)
-		new_team.save()
+		c_captain	= form.cleaned_data['captain']
+
+		team_object = Team.objects.filter(first_name=c_team_name, season=c_season).exists()
+		
+		if team_object:
+			message = "ERROR: " + c_team_name + " already exists"
+		else:
+			new_team 	= Team(team_name = c_team_name,
+								season = c_season,
+								captain = c_captain
+								)
+			new_team.save()
+			message		= c_team_name + " successfully added"
 		
 		messages.add_message(self.request, messages.INFO, message)
 		
@@ -122,6 +137,8 @@ class TeamFormView(UserPassesTestMixin, FormView):
 		return response
 		
 class ShooterFormView(UserPassesTestMixin, FormView):
+	"""Form used to add a new Shooter to the league roster
+	"""
 
 	def test_func(self):
 		return self.request.user.groups.filter(name='League Administrators').exists()
@@ -201,3 +218,103 @@ class ScoreFormView(UserPassesTestMixin, FormView):
 		form = ScoreForm()
 		
 		return response
+
+"""
+class TeamCreateView(UserPassesTestMixin, CreateView):
+
+	def test_func(self):
+		return self.request.user.groups.filter(name='League Administrators').exists()
+
+	now = datetime.datetime.now().year
+	
+	#form = Team
+	model = Team
+	fields = ['team_name', 'captain', 'season']
+	
+	initial = {'season': now}
+	template_name = 'shooter/newteam2.html'
+
+	def get_context_data(self, **kwargs):
+		context = super(TeamCreateView, self).get_context_data(**kwargs)
+		if self.request.POST:
+			context['team_form'] = TeamFormSet(self.request.POST)
+		else:
+			context['team_form'] = TeamFormSet()
+		return context
+		
+	def form_valid(self, form):
+		context = self.get_context_data()
+		team_form = context['team_formset']
+		if team_form.is_valid():
+			c_team_name = form.cleaned_data['team_name']
+			c_season	= form.cleaned_data['season']
+			c_captain	= form.cleaned_data['captain']
+
+			team_object = Team.objects.filter(team_name=c_team_name, season=c_season).exists()
+			
+			if team_object:
+				message = "ERROR: " + c_team_name + " already exists"
+			else:
+				new_team 	= Team(team_name = c_team_name,
+									season = c_season,
+									captain = c_captain
+									)
+				new_team.save()
+				message		= c_team_name + " successfully added"
+			
+			messages.add_message(self.request, messages.INFO, message)
+		
+			return HttpResponseRedirect('/shooter/administration/newteam/')
+		else:
+			return self.render_to_response(self.get_context_data(form=form))
+
+"""
+class TeamFormView2(UserPassesTestMixin, View):
+
+	def test_func(self):
+		return self.request.user.groups.filter(name='League Administrators').exists()
+		
+	template_name 	= 'shooter/newseason.html'
+	initial		= []
+	now 		= datetime.datetime.now().year
+	form_count 	= 10
+	TeamFormSet = formset_factory(TeamForm, formset=BaseTeamFormSet, extra=form_count)
+	#TeamFormSet = formset_factory(TeamForm, formset=BaseTeamFormSet)
+	#TeamFormSet = modelformset_factory(Team, fields=('team_name', 'season', 'captain'))
+
+	for n in range(1,form_count):
+		initial.append({'season': now})
+
+	def get(self, request, *args, **kwargs):
+		team_formset = self.TeamFormSet
+		
+		return render(request, self.template_name, {'form': team_formset})
+
+	def post(self, request, *args, **kwargs):
+		team_formset = self.TeamFormSet(request.POST)
+		
+		if team_formset.is_valid():
+			"""
+			c_team_name = team_formset.cleaned_data['team_name']
+			c_season	= team_formset.cleaned_data['season']
+			c_captain	= team_formset.cleaned_data['captain']
+
+			team_object = Team.objects.filter(team_name=c_team_name, season=c_season).exists()
+			
+			if team_object:
+				message = "ERROR: " + c_team_name + " already exists"
+			else:
+				new_team 	= Team(team_name = c_team_name,
+									season = c_season,
+									captain = c_captain
+									)
+				new_team.save()
+				message		= c_team_name + " successfully added"
+			
+			messages.add_message(self.request, messages.INFO, message)
+		
+			return HttpResponseRedirect('/shooter/administration/newteam/')
+			"""
+			messages.add_message(self.request, messages.INFO, "POST worked")
+
+		return render(request, self.template_name, {'form': team_formset})

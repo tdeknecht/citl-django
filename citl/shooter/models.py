@@ -20,7 +20,8 @@ class Shooter(models.Model):
 class Team(models.Model):
 
 	def __str__(self):
-		return str(self.season) + ":" + self.team_name
+		#return str(self.season) + ":" + self.team_name
+		return self.team_name
 
 	team_name = models.CharField(max_length=100)
 	captain = models.ForeignKey(Shooter, blank=True, null=True, on_delete=models.CASCADE)
@@ -29,12 +30,16 @@ class Team(models.Model):
 class Score(models.Model):
 
 	def __str__(self):
-		return str(self.date) + " " + str(self.week) + ":" + self.shooter.first_name
+		return str(self.date) + " " + str(self.week) + ":" + self.shooter.first_name + " " + self.shooter.last_name
+		
+	WEEK_CHOICES = []
+	for n in range(0,16):
+		WEEK_CHOICES.append(("W"+str(n), "w"+str(n)))	
 		
 	shooter = models.ForeignKey(Shooter, on_delete=models.CASCADE)
 	team = models.ForeignKey(Team, on_delete=models.CASCADE)
 	date = models.DateField(blank=True, null=True)
-	week = models.IntegerField(default=0)
+	week = models.IntegerField(choices=WEEK_CHOICES)
 	bunker_one = models.IntegerField(default=0)
 	bunker_two = models.IntegerField(default=0)
 	average = models.FloatField(default=35.0)

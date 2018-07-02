@@ -3,7 +3,7 @@
 {% block content %}
 	<div class="general-text">
 		<div id="main-header">
-			<a href="{% url 'shooter:newteam' %}">New Team</a>
+			<a href="{% url 'shooter:newteam' %}">New Season</a>
 		</div>
 	</div>
 	<div class="general-text">
@@ -13,7 +13,14 @@
 	</div>
 	<div class="general-text">
 		<div id="main-header">
-			TODO: New Score
+			New Score
 		</div>
+		<table id="shooter-tables">
+			{% for team in this_season %}
+				<tr>
+					<td><a href="{# url 'shooter:newscore' team.team_name #}">{{ team.team_name }}</td>
+				</tr>
+			{% endfor %}
+		</table>
 	</div>
 {% endblock %}
