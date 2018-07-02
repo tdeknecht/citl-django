@@ -1,0 +1,245 @@
+/* Tag overwrite */
+html {
+	height: 80vh;
+}
+
+body {
+	/*overflow:hidden;*/
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+
+a:link, a:visited {
+	text-decoration: none;
+	color: inherit;
+}
+
+a:hover, a:active {
+    text-decoration: none;
+	color: green;
+}
+
+/* ID's */
+
+.citl-logo {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	text-decoration: none;
+	line-height: 1;
+	font-size: 37px;
+	letter-spacing: 2px;
+	color: #555555;
+	display: block;
+	top: 17px;
+}
+
+.citl-slogan {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	text-decoration: none;
+	line-height: 1;
+	font-size: 17px;
+	letter-spacing: 3px;
+	color: #4CAF50;
+	display: block;
+	text-align: right;
+	top: 17px;
+}
+
+.user-id {
+	text-transform: lowercase;
+}
+
+.general-text {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 15px;
+	text-decoration: none;
+	color: inherit;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	padding-bottom: 30px;
+}
+
+.button {
+    background-color: #4CAF50;
+    border: none;
+	border-radius: 8px;
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 15px;
+	text-decoration: none;
+	color: white;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+    padding: 7px 20px;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+/* Page layout styles */
+
+#header {
+	background-color: white;
+	width:100%;
+	text-align: left;
+	text-transform: uppercase;
+	color: black;
+	border-bottom: solid;
+	padding-top: 15px;
+	padding-left: 10px;
+	padding-right: 10px;
+	box-sizing: border-box;
+}
+
+#main-header {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 25px;
+	letter-spacing: 2px;
+	color: #4CAF50;
+	margin: 0px;
+}
+
+#sidebar-left {
+	float:left;
+	width:15%;
+	background-color: #f2f2f2;
+	padding: 0px;
+	box-sizing: border-box;
+}
+
+#sidebar-right {
+	float:left;
+	width:15%;
+	background-color: white;
+	padding: 10px;
+	box-sizing: border-box;
+}
+
+#sidebar-left a:link, #sidebar-left a:visited {
+    background-color: #f2f2f2;
+    color: black;
+    border: 0px solid black;
+    padding: 10px 20px;
+    text-align: left;
+    text-decoration: none;
+    display: inline-block;
+	width: 100%;
+    box-sizing: border-box;
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	letter-spacing: 2px;
+}
+
+#sidebar-left a:hover, #sidebar-left a:active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#main {
+	float: left;
+	width:70%;
+	background-color: white;
+	box-sizing: border-box;
+}
+
+#content {
+	width:100%;
+	background-color: white;
+	padding: 20px;
+	box-sizing: border-box;
+	position: relative;
+	overflow-x: auto;
+}
+
+#footer {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	letter-spacing: 2px;
+	width: 100%;
+	text-align: center;
+	border-top: 2px solid black;
+	padding: 20px;
+	box-sizing: border-box;
+	text-transform: lowercase;
+	font-size: 12px;
+	color: #555555;
+	clear: both;
+}
+
+#sidebar-left, #sidebar-right, #main {
+	min-height: 100%;
+	box-sizing: border-box;
+}
+
+/* Shooter Tables formatting */
+
+#shooter-tables {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 17px;
+    border-collapse: collapse;
+    min-width: 60%;
+}
+
+#shooter-tables td, #shooter-tables th {
+    border: 1px solid #ddd;
+    padding: 10px;
+	padding-right: 20px;
+}
+
+#shooter-tables tr:nth-child(even) {
+	background-color: #f2f2f2;
+}
+
+#shooter-tables tr:hover {
+	background-color: #ddd;
+}
+
+#shooter-tables th {
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* Scorecard Tables */
+
+#scorecard-tables {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	text-align: center;
+	border-collapse: collapse;
+	table-layout: auto;
+	width: 100%;
+}
+
+#scorecard-tables tr {
+	height: 35px;
+}
+
+#scorecard-tables th {
+	padding: 3px;
+	font-size: 15px;
+    background-color: #4CAF50;
+    color: white;
+}
+	
+#scorecard-tables td, #scorecard-tables th {
+    border: 1px solid #ddd;
+}
+
+#scorecard-tables tr:nth-child(even) {
+	background-color: #f2f2f2;
+}
+
+#scorecard-tables td:first-child {
+	text-align: left;
+	width: 20%;
+	padding-left: 5px;
+	font-size: 13px;
+}
+
+#scorecard-tables td:nth-child(n+2):nth-child(-n+16), #scorecard-tables th:nth-child(n+2):nth-child(-n+16) {
+	width: 5%;
+}
+
+#scorecard-tables tr:hover {
+	background-color: #ddd;
+}

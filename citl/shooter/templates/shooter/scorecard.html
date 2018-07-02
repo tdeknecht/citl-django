@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+		<div id="main-header">
+			{{ team }}
+		</div>
+		Currently in 1st Place {# TODO: Make dynamic; use pluralize #}
+		<p>
+		<table id="scorecard-tables">
+			<tr>
+				<th>Member</th>
+				{% for n in weekRange %}
+					<th>W{{ n }} </th>
+				{% endfor %}
+				<th>Weeks Shot</th>
+				<th>Current Average</th>
+			</tr>
+			{% for name, value in scores.items %}
+			<tr>
+				<td>{{ name }}</td>
+				{% for w, s in value.weeks.items %}
+					<td>{{ s }}</td>
+				{% endfor %}
+				<td> {{ value.count }} </td>
+				<td> {{ value.average }} </td>
+			</tr>
+			{% endfor %}
+		</table>
+		</p>
+{% endblock %}

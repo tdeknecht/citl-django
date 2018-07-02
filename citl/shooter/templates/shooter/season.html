@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+		<table id="shooter-tables">
+			<tr>
+				<th>{{ year }} Season</th>
+			</tr>
+			{% for item in season %}
+			<tr>
+				<td><a href="{% url 'shooter:scorecard' item.season item.team_name %}">{{ item.team_name }}</a></td>
+			</tr>
+			{% endfor %}
+		</table>
+{% endblock %}

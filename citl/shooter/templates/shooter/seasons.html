@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+		{% regroup all_season by season as season_list %}
+		{% for season in season_list %}
+			{% if season.grouper == current_year %}
+				<table id="shooter-tables">
+				<tr>
+					<th>{{ season.grouper }} Season</a></th>
+				</tr>
+				{% for team in season.list %}
+					<tr>
+						<td><a href="{% url 'shooter:scorecard' season.grouper team.team_name %}">{{ team.team_name }}</td>
+					</tr>
+				{% endfor %}
+				</table>
+				<br>
+			{% else %}
+				<table id="shooter-tables">
+				<tr>
+					<th><a href="{% url 'shooter:season' season.grouper %}">{{ season.grouper }} Season</a></th>
+				</tr>
+				</table>
+			{% endif %}
+
+		{% endfor %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<div class="general-text">
+		<div id="main-header">
+			New Team2
+		</div>
+		<form action="{% url 'shooter:newteam' %}" method="post">
+		{% csrf_token %}
+		{{ form }}
+		<input class="button" type="submit" value="Submit">
+		</form>
+		<p>
+		{% if messages %}
+			{% for m in messages %}
+				{{ m }}
+			{% endfor %}
+		{% endif %}
+		</p>
+	</div>
+{% endblock %}
