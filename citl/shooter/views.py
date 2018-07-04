@@ -17,7 +17,7 @@ from django.core import serializers
 from django.db import IntegrityError, transaction
 
 from .models import Shooter, Team, Score
-from .forms import BaseSeasonFormSet, TeamForm, ShooterForm, ScoreForm
+from .forms import BaseTeamFormSet, TeamForm, ShooterForm, ScoreForm
 	
 class SeasonsView(View):	
 	def get(self, request):
@@ -106,8 +106,7 @@ class NewSeasonView(UserPassesTestMixin, View):
 	template_name 	= 'shooter/newseason.html'
 	now 		= datetime.datetime.now().year
 	form_count 	= 3
-	#TeamFormSet = formset_factory(TeamForm, formset=BaseSeasonFormSet, extra=form_count)
-	TeamFormSet = formset_factory(TeamForm, extra=form_count)
+	TeamFormSet = formset_factory(TeamForm, formset=BaseTeamFormSet, extra=form_count)
 	#TeamFormSet = modelformset_factory(Team, fields=('team_name', 'season', 'captain'))
 
 	# Trying initial values here. It works, but one is always left blank
@@ -170,11 +169,20 @@ class NewSeasonFormView(UserPassesTestMixin, FormView):
 		"""
 		return self.request.user.groups.filter(name='League Administrators').exists()
 		
-	form_count 	= 1
+	def get_context_data(self, **kwargs):
+		"""Provides context by overriding the default get_context_data method
+		"""
+		test = "Hello World"
+		if 'context_key' not in kwargs:  # set value if not present
+			kwargs['test'] = test
+			
+		return super().get_context_data(**kwargs)
+		
+	extra_forms 	= 0
 	template_name 	= 'shooter/newseason.html'
-	form_class	= formset_factory(TeamForm, formset=BaseSeasonFormSet, extra=form_count)
+	form_class	= formset_factory(TeamForm, min_num=1, validate_min=True, extra=extra_forms, formset=BaseTeamFormSet)
+	#form_class = modelformset_factory(Team, fields=('team_name', 'season', 'captain'))
 	success_url = '/shooter/administration/newseason/'
-	now 		= datetime.datetime.now().year
 		
 	def form_valid(self, form):
 		team_formset = form
@@ -204,18 +212,15 @@ class NewSeasonFormView(UserPassesTestMixin, FormView):
 					messages.add_message(self.request, messages.SUCCESS, "Team(s) added successfully")
 				
 		except IntegrityError:
-			messages.add_message(self.request, messages.ERROR, "Problem saving team(s)")
+			messages.add_message(self.request, messages.ERROR, "Integrity Error: Problem saving team(s)")
 			return super().form_invalid(form)
-			#return render(request, self.template_name, {'formset': team_formset})
-		
+
 		return super().form_valid(form)
 		
 	def form_invalid(self, form):
-		messages.add_message(self.request, messages.ERROR, "Form invalid")
-
 		return super().form_invalid(form)
 
-class ShooterFormView(UserPassesTestMixin, FormView):
+class NewShooterFormView(UserPassesTestMixin, FormView):
 	"""Form used to add a new Shooter to the league roster
 	"""
 
@@ -262,7 +267,7 @@ class ShooterFormView(UserPassesTestMixin, FormView):
 		
 		return response
 
-class ScoreFormView(UserPassesTestMixin, FormView):
+class NewScoreFormView(UserPassesTestMixin, FormView):
 
 	def test_func(self):
 		return self.request.user.groups.filter(name='League Administrators').exists()

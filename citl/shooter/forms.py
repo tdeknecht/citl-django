@@ -5,16 +5,57 @@ from django.forms.formsets import BaseFormSet
 
 from .models import Shooter, Team, Score
 
+# ModelForms
+
+class TeamForm(forms.ModelForm):
+	
+	class Meta:
+		model = Team
+		fields = ['team_name', 'captain', 'season']
+
+class ShooterForm(forms.ModelForm):
+	class Meta:
+		model	= Shooter
+		fields	= ['first_name', 'last_name', 'email', 'rookie', 'guest']
+
+class ScoreForm(forms.ModelForm):
+
+	now = datetime.datetime.now()
+	
+	class Meta:
+		model = Score
+		fields = ['team', 'shooter', 'date', 'week', 'bunker_one', 'bunker_two']
+
+	team		= forms.ModelMultipleChoiceField(queryset=Team.objects.all().filter(season=now.year))
+	#shooter	= Dynamically choose shooter based on what team
+	
+	#def __init__(self, *args, **kwargs):
+		#super().__init__(*args, **kwargs)
+		#self.fields['shooter'].queryset = Shooter.objects.none()
+
+# Forms
+
+"""
+class TeamForm(forms.Form):
+
+	team_name 	= forms.CharField(label='Team Name', max_length=100)
+	captain		= forms.CharField(label='Captain')
+	season 		= forms.IntegerField(label="Season")
+"""
+
+"""
+class ShooterForm(forms.Form):
+	
+	first_name	= forms.CharField(label='First Name', max_length=50)
+	last_name	= forms.CharField(label='Last Name', max_length=50)
+	email		= forms.EmailField(label='Email', max_length=100)
+	rookie		= forms.BooleanField(label='Rookie',required=False)
+	guest		= forms.BooleanField(label='Guest',required=False)
+"""
 
 # BaseFormSets
-
-class RequiredFormSet(BaseFormSet):
-    def __init__(self, *args, **kwargs):
-        super(RequiredFormSet, self).__init__(*args, **kwargs)
-        for form in self.forms:
-            form.empty_permitted = False
 			
-class BaseSeasonFormSet(BaseFormSet):
+class BaseTeamFormSet(BaseFormSet):
 	def clean(self):
 		#Adds validation to check that no two teams have the same name or captain
 		#and that all teams have a team name and captain
@@ -57,56 +98,3 @@ class BaseSeasonFormSet(BaseFormSet):
 						'A Captain must be assigned to a Team',
 						code='missing_team'
 					)
-
-# ModelForms
-
-class TeamForm(forms.ModelForm):
-		
-	class Meta:
-		model = Team
-		fields = ['team_name', 'captain', 'season']
-		
-	#def __init__(self, *args, **kwargs):
-		#super(TeamForm, self).__init__(*args, **kwargs)
-		#self.fields['season'].widget.attrs['readonly'] = True
-
-class ShooterForm(forms.ModelForm):
-	class Meta:
-		model	= Shooter
-		fields	= ['first_name', 'last_name', 'email', 'rookie', 'guest']
-
-	
-class ScoreForm(forms.ModelForm):
-
-	now = datetime.datetime.now()
-	
-	class Meta:
-		model = Score
-		fields = ['team', 'shooter', 'date', 'week', 'bunker_one', 'bunker_two']
-
-	team		= forms.ModelMultipleChoiceField(queryset=Team.objects.all().filter(season=now.year))
-	#shooter	= Dynamically choose shooter based on what team
-	
-	#def __init__(self, *args, **kwargs):
-		#super().__init__(*args, **kwargs)
-		#self.fields['shooter'].queryset = Shooter.objects.none()
-
-# Forms
-
-"""
-class TeamForm(forms.Form):
-
-	team_name 	= forms.CharField(label='Team Name', max_length=100)
-	captain		= forms.CharField(label='Captain')
-	season 		= forms.IntegerField(label="Season")
-"""
-
-"""
-class ShooterForm(forms.Form):
-	
-	first_name	= forms.CharField(label='First Name', max_length=50)
-	last_name	= forms.CharField(label='Last Name', max_length=50)
-	email		= forms.EmailField(label='Email', max_length=100)
-	rookie		= forms.BooleanField(label='Rookie',required=False)
-	guest		= forms.BooleanField(label='Guest',required=False)
-"""

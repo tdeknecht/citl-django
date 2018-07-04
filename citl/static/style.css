@@ -250,3 +250,9 @@ a:hover, a:active {
 #scorecard-tables tr:hover {
 	background-color: #ddd;
 }
+
+/* Forms */
+
+input[id*="-team_name"] {
+	width: 80%;
+}

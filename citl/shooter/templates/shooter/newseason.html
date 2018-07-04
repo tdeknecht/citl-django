@@ -11,26 +11,52 @@
 		<form id="new-season" action="{% url 'shooter:newseason' %}" method="post">
 			{% csrf_token %}
 			{{ form.management_form }}
-			<table>
+			<table id="scorecard-tables">
 				<tr>
 					<th>Team Name</th>
 					<th>Captain</th>
 					<th>Season Year</th>
 				</tr>
-				{% for form in form %}
-				<tr>
-					<td>{{ form.team_name }}</td>
-					<td>{{ form.captain }}</td>
-					<td>{{ form.season }}</td>
-				</tr>
+				{% for f in form %}
+					<tr>
+						<td>{{ f.team_name }}</td>
+						<td>{{ f.captain }}</td>
+						<td>{{ f.season }}</td>
+					</tr>
+					{% if f.team_name.errors or f.captain.errors or f.season.errors %}
+					<tr>
+						<td>
+							{% if f.team_name.errors %}
+								{% for error in f.team_name.errors %}
+									{{ error|escape }}
+								{% endfor %}
+							{% endif %}
+						</td>
+						<td>
+							{% if f.captain.errors %}
+								{% for error in f.captain.errors %}
+									{{ error|escape }}
+								{% endfor %}
+							{% endif %}
+						</td>
+						<td>
+							{% if f.season.errors %}
+								{% for error in f.season.errors %}
+									{{ error|escape }}
+								{% endfor %}
+							{% endif %}
+						</td>
+					</tr>
+					{% endif %}
 				{% endfor %}
 			</table>
+
 			<p><input class="button" type="submit" value="Submit"></p>
 		</form>
 		
 		<script type="text/javascript">
 			$(function() {
-				$('#new-season table tr').formset({addText: 'Add another team', deleteText: 'remove'});
+				$('#new-season table tr').formset({addText: 'Add another team', deleteText: ' remove'});
 			})
 		</script>
 		</p>
