@@ -1,25 +1,46 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block content %}
 	<div class="general-text">
 		<div id="main-header">
 			New Season
 		</div>
 		<p>
-		<form action="{% url 'shooter:newteam' %}" method="post">
-		{% csrf_token %}
-		{{ form.management_form }}
-		{% for row in form %}
-			{{ row }}<br>
-		{% endfor %}
-		<input class="button" type="submit" value="Submit">
+		<form id="new-season" action="{% url 'shooter:newseason' %}" method="post">
+			{% csrf_token %}
+			{{ form.management_form }}
+			<table>
+				<tr>
+					<th>Team Name</th>
+					<th>Captain</th>
+					<th>Season Year</th>
+				</tr>
+				{% for form in form %}
+				<tr>
+					<td>{{ form.team_name }}</td>
+					<td>{{ form.captain }}</td>
+					<td>{{ form.season }}</td>
+				</tr>
+				{% endfor %}
+			</table>
+			<p><input class="button" type="submit" value="Submit"></p>
 		</form>
+		
+		<script type="text/javascript">
+			$(function() {
+				$('#new-season table tr').formset({addText: 'Add another team', deleteText: 'remove'});
+			})
+		</script>
 		</p>
 		<p>
 		{% if messages %}
-			{% for m in messages %}
-				{{ m }}<br>
+		<ul class="messages">
+			{% for message in messages %}
+			<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
 			{% endfor %}
+		</ul>
 		{% endif %}
 		</p>
 	</div>

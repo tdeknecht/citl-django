@@ -5,7 +5,16 @@ from django.forms.formsets import BaseFormSet
 
 from .models import Shooter, Team, Score
 
-class BaseTeamFormSet(BaseFormSet):
+
+# BaseFormSets
+
+class RequiredFormSet(BaseFormSet):
+    def __init__(self, *args, **kwargs):
+        super(RequiredFormSet, self).__init__(*args, **kwargs)
+        for form in self.forms:
+            form.empty_permitted = False
+			
+class BaseSeasonFormSet(BaseFormSet):
 	def clean(self):
 		#Adds validation to check that no two teams have the same name or captain
 		#and that all teams have a team name and captain
@@ -49,37 +58,23 @@ class BaseTeamFormSet(BaseFormSet):
 						code='missing_team'
 					)
 
+# ModelForms
+
 class TeamForm(forms.ModelForm):
 		
 	class Meta:
 		model = Team
 		fields = ['team_name', 'captain', 'season']
 		
-	def __init__(self, *args, **kwargs):
-		super(TeamForm, self).__init__(*args, **kwargs)
+	#def __init__(self, *args, **kwargs):
+		#super(TeamForm, self).__init__(*args, **kwargs)
 		#self.fields['season'].widget.attrs['readonly'] = True
-
-"""
-class TeamForm(forms.Form):
-
-	team_name 	= forms.CharField(label='Team Name', max_length=100)
-	captain		= forms.CharField(label='Captain')
-	season 		= forms.IntegerField(label="Season")
-"""
 
 class ShooterForm(forms.ModelForm):
 	class Meta:
 		model	= Shooter
 		fields	= ['first_name', 'last_name', 'email', 'rookie', 'guest']
-"""
-class ShooterForm(forms.Form):
-	
-	first_name	= forms.CharField(label='First Name', max_length=50)
-	last_name	= forms.CharField(label='Last Name', max_length=50)
-	email		= forms.EmailField(label='Email', max_length=100)
-	rookie		= forms.BooleanField(label='Rookie',required=False)
-	guest		= forms.BooleanField(label='Guest',required=False)
-"""
+
 	
 class ScoreForm(forms.ModelForm):
 
@@ -95,3 +90,23 @@ class ScoreForm(forms.ModelForm):
 	#def __init__(self, *args, **kwargs):
 		#super().__init__(*args, **kwargs)
 		#self.fields['shooter'].queryset = Shooter.objects.none()
+
+# Forms
+
+"""
+class TeamForm(forms.Form):
+
+	team_name 	= forms.CharField(label='Team Name', max_length=100)
+	captain		= forms.CharField(label='Captain')
+	season 		= forms.IntegerField(label="Season")
+"""
+
+"""
+class ShooterForm(forms.Form):
+	
+	first_name	= forms.CharField(label='First Name', max_length=50)
+	last_name	= forms.CharField(label='Last Name', max_length=50)
+	email		= forms.EmailField(label='Email', max_length=100)
+	rookie		= forms.BooleanField(label='Rookie',required=False)
+	guest		= forms.BooleanField(label='Guest',required=False)
+"""
