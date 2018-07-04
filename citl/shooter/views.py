@@ -94,49 +94,70 @@ class AdministrationView(UserPassesTestMixin, View):
 		
 # FORMS
 
-class TeamFormView(UserPassesTestMixin, FormView):
-	"""Form used to submit new Teams
+class SeasonFormView(UserPassesTestMixin, View):
+	"""View leveraging formset and formset_factory to input multiple new teams for a season
 	"""
 
 	def test_func(self):
+		"""Validate user viewing this page has permission
+		"""
 		return self.request.user.groups.filter(name='League Administrators').exists()
-
-	template_name = 'shooter/newteam.html'
-	form_class = TeamForm
-	success_url = '/shooter/administration/newteam/'
-
-	def form_valid(self, form):
-	
-		response = super().form_valid(form)
 		
-		c_team_name = form.cleaned_data['team_name']
-		c_season	= form.cleaned_data['season']
-		c_captain	= form.cleaned_data['captain']
+	template_name 	= 'shooter/newseason.html'
+	initial		= []
+	now 		= datetime.datetime.now().year
+	form_count 	= 2
+	#TeamFormSet = formset_factory(TeamForm, formset=BaseTeamFormSet, extra=form_count)
+	TeamFormSet = formset_factory(TeamForm, extra=form_count)
+	#TeamFormSet = modelformset_factory(Team, fields=('team_name', 'season', 'captain'))
 
-		team_object = Team.objects.filter(first_name=c_team_name, season=c_season).exists()
+	for n in range(1,form_count):
+		initial.append({'season': now})
+
+	def get(self, request, *args, **kwargs):
+		"""On initial GET, return the formset containing inputs for new teams
+		"""
+		team_formset = self.TeamFormSet
 		
-		if team_object:
-			message = "ERROR: " + c_team_name + " already exists"
+		return render(request, self.template_name, {'form': team_formset})
+
+	def post(self, request, *args, **kwargs):
+		team_formset = self.TeamFormSet(request.POST)
+		
+		if team_formset.is_valid():
+			new_teams = []
+			
+			for f in team_formset:
+				c_team_name = f.cleaned_data.get('team_name')
+				c_captain	= f.cleaned_data.get('captain')
+				c_season	= f.cleaned_data.get('season')
+				
+				if c_team_name and c_captain and c_season:
+					new_teams.append(Team(team_name=c_team_name, captain=c_captain, season=c_season))
+					
+			#TODO: Validate whether the team already exists to avoid duplication
+			#team_object = Team.objects.filter(team_name=c_team_name, season=c_season).exists()
+					
+			try:
+				with transaction.atomic():
+					Team.objects.bulk_create(new_teams)
+					
+					messages.add_message(self.request, messages.INFO, "Team(s) added successfully")
+					
+			except IntegrityError:
+				messages.add_message(self.request, messages.INFO, "ERROR: Problem saving team(s)")
+				return render(request, self.template_name, {'form': team_formset})
+				#return HttpResponseRedirect('/shooter/administration/newseason/')	# Doing it this way will blank out the fields after POST
+		
 		else:
-			new_team 	= Team(team_name = c_team_name,
-								season = c_season,
-								captain = c_captain
-								)
-			new_team.save()
-			message		= c_team_name + " successfully added"
+			message = "Form invalid"
+			messages.add_message(self.request, messages.INFO, message)
+
+			return HttpResponseRedirect('/shooter/administration/newseason/')
 		
-		messages.add_message(self.request, messages.INFO, message)
-		
-		return response
-		
-	def form_invalid(self, form):
-	
-		response = super().form_invalid(form)
-		
-		form = TeamForm()
-		
-		return response
-		
+		return HttpResponseRedirect('/shooter/administration/newseason/')		# Doing it this way will blank out the fields after POST
+		#return render(request, self.template_name, {'form': team_formset})		# Doing it this way will keep the fields populated after POST
+
 class ShooterFormView(UserPassesTestMixin, FormView):
 	"""Form used to add a new Shooter to the league roster
 	"""
@@ -219,109 +240,3 @@ class ScoreFormView(UserPassesTestMixin, FormView):
 		form = ScoreForm()
 		
 		return response
-
-"""
-class TeamCreateView(UserPassesTestMixin, CreateView):
-
-	def test_func(self):
-		return self.request.user.groups.filter(name='League Administrators').exists()
-
-	now = datetime.datetime.now().year
-	
-	#form = Team
-	model = Team
-	fields = ['team_name', 'captain', 'season']
-	
-	initial = {'season': now}
-	template_name = 'shooter/newteam2.html'
-
-	def get_context_data(self, **kwargs):
-		context = super(TeamCreateView, self).get_context_data(**kwargs)
-		if self.request.POST:
-			context['team_form'] = TeamFormSet(self.request.POST)
-		else:
-			context['team_form'] = TeamFormSet()
-		return context
-		
-	def form_valid(self, form):
-		context = self.get_context_data()
-		team_form = context['team_formset']
-		if team_form.is_valid():
-			c_team_name = form.cleaned_data['team_name']
-			c_season	= form.cleaned_data['season']
-			c_captain	= form.cleaned_data['captain']
-
-			team_object = Team.objects.filter(team_name=c_team_name, season=c_season).exists()
-			
-			if team_object:
-				message = "ERROR: " + c_team_name + " already exists"
-			else:
-				new_team 	= Team(team_name = c_team_name,
-									season = c_season,
-									captain = c_captain
-									)
-				new_team.save()
-				message		= c_team_name + " successfully added"
-			
-			messages.add_message(self.request, messages.INFO, message)
-		
-			return HttpResponseRedirect('/shooter/administration/newteam/')
-		else:
-			return self.render_to_response(self.get_context_data(form=form))
-
-"""
-class TeamFormView2(UserPassesTestMixin, View):
-
-	def test_func(self):
-		return self.request.user.groups.filter(name='League Administrators').exists()
-		
-	template_name 	= 'shooter/newseason.html'
-	initial		= []
-	now 		= datetime.datetime.now().year
-	form_count 	= 2
-	#TeamFormSet = formset_factory(TeamForm, formset=BaseTeamFormSet, extra=form_count)
-	TeamFormSet = formset_factory(TeamForm, extra=form_count)
-	#TeamFormSet = modelformset_factory(Team, fields=('team_name', 'season', 'captain'))
-
-	for n in range(1,form_count):
-		initial.append({'season': now})
-
-	def get(self, request, *args, **kwargs):
-		team_formset = self.TeamFormSet
-		
-		return render(request, self.template_name, {'form': team_formset})
-
-	def post(self, request, *args, **kwargs):
-		team_formset = self.TeamFormSet(request.POST)
-		
-		if team_formset.is_valid():
-			new_teams = []
-			
-			for f in team_formset:
-				c_team_name = f.cleaned_data.get('team_name')
-				c_captain	= f.cleaned_data.get('captain')
-				c_season	= f.cleaned_data.get('season')
-				
-				if c_team_name and c_captain and c_season:
-					new_teams.append(Team(team_name=c_team_name, captain=c_captain, season=c_season))
-					
-			#TODO: Validate whether the team already exists to avoid duplication
-			#team_object = Team.objects.filter(team_name=c_team_name, season=c_season).exists()
-					
-			try:
-				with transaction.atomic():
-					Team.objects.bulk_create(new_teams)
-					
-					messages.add_message(self.request, messages.INFO, "Team(s) added successfully")
-					
-			except IntegrityError:
-				messages.add_message(self.request, messages.INFO, "ERROR: Problem saving team(s)")
-				return HttpResponseRedirect('/shooter/administration/newseason/')
-		
-		else:
-			message = "Form invalid"
-			messages.add_message(self.request, messages.INFO, message)
-
-			return HttpResponseRedirect('/shooter/administration/newseason/')
-		
-		return render(request, self.template_name, {'form': team_formset})
