@@ -1,25 +1,72 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block content %}
 	<div class="general-text">
 		<div id="main-header">
 			New Season
 		</div>
 		<p>
-		<form action="{% url 'shooter:newteam' %}" method="post">
-		{% csrf_token %}
-		{{ form.management_form }}
-		{% for row in form %}
-			{{ row }}<br>
-		{% endfor %}
-		<input class="button" type="submit" value="Submit">
+		<form id="new-season" action="{% url 'shooter:newseason' %}" method="post">
+			{% csrf_token %}
+			{{ form.management_form }}
+			<table id="scorecard-tables">
+				<tr>
+					<th>Team Name</th>
+					<th>Captain</th>
+					<th>Season Year</th>
+				</tr>
+				{% for f in form %}
+					<tr>
+						<td>{{ f.team_name }}</td>
+						<td>{{ f.captain }}</td>
+						<td>{{ f.season }}</td>
+					</tr>
+					{% if f.team_name.errors or f.captain.errors or f.season.errors %}
+					<tr>
+						<td>
+							{% if f.team_name.errors %}
+								{% for error in f.team_name.errors %}
+									{{ error|escape }}
+								{% endfor %}
+							{% endif %}
+						</td>
+						<td>
+							{% if f.captain.errors %}
+								{% for error in f.captain.errors %}
+									{{ error|escape }}
+								{% endfor %}
+							{% endif %}
+						</td>
+						<td>
+							{% if f.season.errors %}
+								{% for error in f.season.errors %}
+									{{ error|escape }}
+								{% endfor %}
+							{% endif %}
+						</td>
+					</tr>
+					{% endif %}
+				{% endfor %}
+			</table>
+
+			<p><input class="button" type="submit" value="Submit"></p>
 		</form>
+		
+		<script type="text/javascript">
+			$(function() {
+				$('#new-season table tr').formset({addText: 'Add another team', deleteText: ' remove'});
+			})
+		</script>
 		</p>
 		<p>
 		{% if messages %}
-			{% for m in messages %}
-				{{ m }}<br>
+		<ul class="messages">
+			{% for message in messages %}
+			<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
 			{% endfor %}
+		</ul>
 		{% endif %}
 		</p>
 	</div>
