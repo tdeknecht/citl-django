@@ -10,14 +10,14 @@
 		<p>
 		<form id="new-season" action="{% url 'shooter:newseason' %}" method="post">
 			{% csrf_token %}
-			{{ form.management_form }}
+			{{ formset.management_form }}
 			<table id="scorecard-tables">
 				<tr>
 					<th>Team Name</th>
 					<th>Captain</th>
 					<th>Season Year</th>
 				</tr>
-				{% for f in form %}
+				{% for f in formset %}
 					<tr>
 						<td>{{ f.team_name }}</td>
 						<td>{{ f.captain }}</td>
