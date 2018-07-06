@@ -1,10 +1,17 @@
 /* CLASS tag overwrites */
+
+/* Color Reference
+	Clay Target color: 	#ff471a
+	Normal green:		#009933
+	W3Schools green: 	#4CAF50
+*/
+
 html {
 	height: 80vh;
 }
 
 body {
-	/*overflow:hidden;*/
+	overflow:auto;
 	margin: 0;
 	padding: 0;
 	height: 100%;
@@ -17,7 +24,7 @@ a:link, a:visited {
 
 a:hover, a:active {
     text-decoration: none;
-	color: green;
+	color: #009933;
 }
 
 /* ID's */
@@ -39,7 +46,7 @@ a:hover, a:active {
 	line-height: 1;
 	font-size: 17px;
 	letter-spacing: 3px;
-	color: #4CAF50;
+	color: #009933;
 	display: block;
 	text-align: right;
 	top: 17px;
@@ -60,7 +67,7 @@ a:hover, a:active {
 }
 
 .button {
-    background-color: #4CAF50;
+    background-color: #009933;
     border: none;
 	border-radius: 8px;
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
@@ -79,6 +86,11 @@ a:hover, a:active {
 
 /* Page layout styles */
 
+#wrapper {
+	width: 100%;
+	overflow: hidden;
+}
+
 #header {
 	background-color: white;
 	width:100%;
@@ -96,7 +108,7 @@ a:hover, a:active {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 	font-size: 25px;
 	letter-spacing: 2px;
-	color: #4CAF50;
+	color: #009933;
 	margin: 0px;
 	text-transform: uppercase;
 }
@@ -132,18 +144,21 @@ a:hover, a:active {
 }
 
 #sidebar-left a:hover, #sidebar-left a:active {
-    background-color: #4CAF50;
+    background-color: #009933;
     color: white;
 }
 
 #main {
+	overflow: auto;
 	float: left;
 	width:70%;
+	height: 80vh;
 	background-color: white;
 	box-sizing: border-box;
 }
 
 #content {
+	float: left;
 	width:100%;
 	background-color: white;
 	padding: 20px;
@@ -201,7 +216,7 @@ a:hover, a:active {
 
 #shooter-tables th {
     text-align: left;
-    background-color: #4CAF50;
+    background-color: #009933;
     color: white;
 }
 
@@ -223,7 +238,7 @@ a:hover, a:active {
 #scorecard-tables th {
 	padding: 3px;
 	font-size: 15px;
-    background-color: #4CAF50;
+    background-color: #009933;
     color: white;
 	text-transform: uppercase;
 }
@@ -250,9 +265,43 @@ a:hover, a:active {
 #scorecard-tables tr:hover {
 	background-color: #ddd;
 }
+/* Input Tables */
+
+#input-tables {
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	text-align: center;
+	border-collapse: collapse;
+	table-layout: auto;
+	width: 100%;
+}
+
+#input-tables tr {
+	height: 35px;
+}
+
+#input-tables th {
+	padding: 3px;
+	font-size: 15px;
+    background-color: #009933;
+    color: white;
+	text-transform: uppercase;
+}
+	
+#input-tables td, #input-tables th {
+    border: 1px solid #ddd;
+}
+
+#input-tables tr:nth-child(even) {
+	background-color: #f2f2f2;
+}
+
+#input-tables tr:hover {
+	background-color: #ddd;
+}
 
 /* Forms */
 
-input[id*="-team_name"] {
+input[id*="team_name"], input[id*="-first_name"], input[id*="-last_name"], input[id*="-email"] {
 	width: 80%;
 }

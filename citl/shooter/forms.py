@@ -11,7 +11,7 @@ class TeamForm(forms.ModelForm):
 	
 	class Meta:
 		model = Team
-		fields = ['team_name', 'captain', 'season']
+		fields = ['team_name', 'season']
 
 class ShooterForm(forms.ModelForm):
 	class Meta:

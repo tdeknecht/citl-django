@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+	<div class="general-text">
+		<div id="main-header">
+			New Team
+		</div>
+		<p>
+		<form id="new-team" action="{% url 'shooter:newteam' %}" method="post">
+		<table id="input-tables">
+			<tr>
+				<th>Team Name</th>
+				<th>Season Year</th>
+			</tr>
+			<tr>
+				<td>{{ team_form.team_name }}</td>
+				<td>{{ team_form.season }} </td>
+			</tr>
+		</table>
+		<p>
+		<table id="input-tables">
+			<tr>
+				<th>First Name</th>
+				<th>Last Name</th>
+				<th>Email</th>
+				<th>Rookie</th>
+				<th>Guest</th>
+			</tr>
+			{% for f in shooter_formset %}
+			<tr>
+				<td>{{ f.first_name }}</td>
+				<td>{{ f.last_name }} </td>
+				<td>{{ f.email }} </td>
+				<td>{{ f.rookie }} </td>
+				<td>{{ f.guest }} </td>
+			</tr>
+			{% endfor %}
+			{% csrf_token %}
+			{{ shooter_formset.management_form }}
+		</table>
+		</p>
+		<p><input class="button" type="submit" value="Submit"></p>
+		</form>
+		
+		{% comment %}
+		<script type="text/javascript">
+			$(function() {
+				$('#new-shooter table tr').formset({addText: 'Add another shooter', deleteText: ' remove'});
+			})
+		</script>
+		{% endcomment %}
+		
+		</p>
+		<p>
+		{% if messages %}
+		<ul class="messages">
+			{% for message in messages %}
+			<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+			{% endfor %}
+		</ul>
+		{% endif %}
+		</p>
+	</div>
+{% endblock %}
