@@ -17,6 +17,10 @@ class Shooter(models.Model):
 	rookie = models.BooleanField(default=False)
 	guest = models.BooleanField(default=False)
 	
+	#def clean(self):
+	#	self.first_name = self.first_name.capitalize()
+	#	self.last_name = self.last_name.capitalize()
+	
 class Team(models.Model):
 
 	def __str__(self):
@@ -34,7 +38,8 @@ class Score(models.Model):
 		
 	WEEK_CHOICES = []
 	for n in range(0,16):
-		WEEK_CHOICES.append(("W"+str(n), "w"+str(n)))	
+		#WEEK_CHOICES.append(("W"+str(n), "W"+str(n)))
+		WEEK_CHOICES.append((n, "W"+str(n)))		
 		
 	shooter = models.ForeignKey(Shooter, on_delete=models.CASCADE)
 	team = models.ForeignKey(Team, on_delete=models.CASCADE)

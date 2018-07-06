@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<div class="general-text">
+		<p>{{ objects }}</p>
+		<p>
+		{% for s in objects %}
+			{{ s }}
+			{{ s.id }}
+			<br>
+		{% endfor %}
+		</p>
+		{{ message }} <br>
+		{{ var1 }}<br>
+		{{ var2 }}<br>
+	</div>
+{% endblock %}

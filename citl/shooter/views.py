@@ -76,6 +76,8 @@ class ScorecardView(View):
 		return render(request, 'shooter/scorecard.html', context)
 		
 class AdministrationView(UserPassesTestMixin, View):
+	"""Landing page for administrative tasks
+	"""
 
 	def test_func(self):
 		return self.request.user.groups.filter(name='League Administrators').exists()
@@ -131,6 +133,7 @@ class NewTeamView(UserPassesTestMixin, View):
 			c_season	= team_form.cleaned_data.get('season')
 		
 			new_shooters = []
+			new_scores	= []
 			
 			if c_team_name and c_season:
 				new_team = Team(team_name=c_team_name, season=c_season)
@@ -147,6 +150,8 @@ class NewTeamView(UserPassesTestMixin, View):
 					if c_first_name and c_last_name:
 						shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email, rookie=c_rookie, guest=c_guest)
 						if shooter not in new_shooters:
+							#TODO: I need to check whether the Shooter already exists because i don't want dupes
+							#Q: How do I handle multiple shooters with the same name?
 							# This is not very efficient, but a new season only occurs once a year. Leaving it for now.
 							#if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists():
 							new_shooters.append(shooter)
@@ -159,12 +164,15 @@ class NewTeamView(UserPassesTestMixin, View):
 						new_team.save()
 						Shooter.objects.bulk_create(new_shooters)
 						
-						messages.add_message(self.request, messages.SUCCESS, "Team added successfully")
+						messages.add_message(self.request, messages.SUCCESS, "Team and Shooters added successfully")
 						
 				except IntegrityError as ie:
 					type, value, traceback = sys.exc_info()
 					messages.add_message(self.request, messages.ERROR, "IntegrityError... " + type + value)
 					return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})
+					
+				# With a Team and Shooters added to the back end, time to initialize WEEK0 scores to get Shooters on the board and pull in current averages
+				#ShooterObjects = Shooter.objects.filter(
 			else:
 				messages.add_message(self.request, messages.ERROR, "A Team Name and Season must be entered")
 
@@ -174,6 +182,40 @@ class NewTeamView(UserPassesTestMixin, View):
 		#return HttpResponseRedirect('/shooter/administration/newteam/')		# Doing it this way will blank out the fields after POST
 		return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})		# Doing it this way will keep the fields populated after POST
 
+class TempView(View):
+	def get(self, request):
+	
+		c_first_name 	= 'Tyler'
+		c_last_name 	= 'DeKnecht'
+		c_email 		= 'tdeknecht@gmail.com'
+		c_rookie		= False
+		c_guest			= False
+		new_shooters	= []
+		shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email, rookie=c_rookie, guest=c_guest)
+		new_shooters.append(shooter)
+		
+		names = ['Tyler','Erin','Pocket']
+		
+		#Objects = Score.objects.filter(shooter=1)
+		#Objects = Shooter.objects.filter(first_name__in=names)
+		Objects = Shooter.objects.all().defer('id')
+		
+		for s in Objects:
+			print("s=", s, "list=", new_shooters[0])
+			s.id = None
+			if s in new_shooters:
+				message = "s was in Objects"
+			else:
+				message = "Your IF didn't work"
+		
+		context = {
+			'objects': Objects,
+			'message': message,
+			'var1': shooter,
+		}
+		
+		return render(request, 'shooter/temp.html', context)
+		
 class NewShooterFormView(UserPassesTestMixin, FormView):
 	"""Form used to add a new Shooter to the league roster
 	"""
