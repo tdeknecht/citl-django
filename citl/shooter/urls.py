@@ -15,5 +15,5 @@ urlpatterns = [
 	path('administration/newshooter/', views.NewShooterFormView.as_view(), name='newshooter'),
 	path('administration/newscore/', views.NewScoreFormView.as_view(), name='newscore'),
 	#path('administration/<team>/newscore/', views.ScoreFormView2.as_view(), name='newscore'),
-	path('temp/', views.TempView.as_view(), name='temp'),
+	path('temp/', views.TestView.as_view(), name='temp'),
 ]
