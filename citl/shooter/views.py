@@ -49,7 +49,7 @@ class SeasonView(View):
 class ScorecardView(View):
 	def get(self, request, year, team):
 	
-		weekRange = range(1,16)
+		weekRange = range(0,16)
 
 		scores = Score.objects \
 				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', 'average', \
@@ -76,6 +76,8 @@ class ScorecardView(View):
 		return render(request, 'shooter/scorecard.html', context)
 		
 class AdministrationView(UserPassesTestMixin, View):
+	"""Landing page for administrative tasks
+	"""
 
 	def test_func(self):
 		return self.request.user.groups.filter(name='League Administrators').exists()
@@ -125,15 +127,25 @@ class NewTeamView(UserPassesTestMixin, View):
 		team_form = self.TeamForm(request.POST)
 		shooter_formset = self.ShooterFormSet(request.POST)
 		
+		# Basic form validation conditional
 		if team_form.is_valid() and shooter_formset.is_valid():
 		
 			c_team_name = team_form.cleaned_data.get('team_name')
 			c_season	= team_form.cleaned_data.get('season')
 		
 			new_shooters = []
+			new_scores	= []
 			
+			# Can't process any Shooters unless we have a team name and season
 			if c_team_name and c_season:
 				new_team = Team(team_name=c_team_name, season=c_season)
+				
+				if Team.objects.filter(team_name=c_team_name).exists():
+					messages.add_message(self.request, messages.ERROR, c_team_name + " already exists")
+					return HttpResponseRedirect('/shooter/administration/newteam/')
+					
+				else:
+					new_team.save()
 				
 				# If a team was entered correctly, continue processing Shooters
 				for f in shooter_formset:
@@ -144,36 +156,43 @@ class NewTeamView(UserPassesTestMixin, View):
 					c_rookie		= f.cleaned_data.get('rookie')
 					c_guest			= f.cleaned_data.get('rookie')
 					
+					# Need to have a First and Last name. The rest is optional or defaulted
 					if c_first_name and c_last_name:
 						shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email, rookie=c_rookie, guest=c_guest)
+						
+						# Check to see if the name was entered twice in the same form
 						if shooter not in new_shooters:
-							# This is not very efficient, but a new season only occurs once a year. Leaving it for now.
-							#if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists():
-							new_shooters.append(shooter)
+
+							# Check to see if the shooter already exists in the league
+							# Q: How do I handle multiple shooters with the same name in the league? Could get messy...
+							if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists():
+								messages.add_message(self.request, messages.WARNING, c_first_name + " " + c_last_name + " already exists")
+							else:
+								shooter.save()
+								ScoreInit = Score(shooter=shooter, team=new_team, date=datetime.datetime.now().date())
+								ScoreInit.save()
 						else:
-							messages.add_message(self.request, messages.WARNING, c_first_name + " " + c_last_name + " was entered more than once")
-						
-				# Now lets try adding this stuff to our database
-				try:				
-					with transaction.atomic():	# using an atomic transaction here to ensure a complete bulk commit
-						new_team.save()
-						Shooter.objects.bulk_create(new_shooters)
-						
-						messages.add_message(self.request, messages.SUCCESS, "Team added successfully")
-						
-				except IntegrityError as ie:
-					type, value, traceback = sys.exc_info()
-					messages.add_message(self.request, messages.ERROR, "IntegrityError... " + type + value)
-					return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})
+							messages.add_message(self.request, messages.WARNING, c_first_name + " " + c_last_name + " was entered more than once on the form")
 			else:
 				messages.add_message(self.request, messages.ERROR, "A Team Name and Season must be entered")
 
 		else:
 			return HttpResponseRedirect('/shooter/administration/newteam/')
 		
-		#return HttpResponseRedirect('/shooter/administration/newteam/')		# Doing it this way will blank out the fields after POST
-		return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})		# Doing it this way will keep the fields populated after POST
+		return HttpResponseRedirect('/shooter/administration/newteam/')		# Doing it this way will blank out the fields after POST
+		#return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})		# Doing it this way will keep the fields populated after POST
 
+class TestView(View):
+	"""Playground View
+	"""
+	def get(self, request):
+		
+		context = {
+			'test': "Test"
+		}
+		
+		return render(request, 'shooter/test.html', context)
+		
 class NewShooterFormView(UserPassesTestMixin, FormView):
 	"""Form used to add a new Shooter to the league roster
 	"""
