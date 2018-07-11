@@ -1,21 +1,15 @@
-# https://docs.djangoproject.com/en/2.0/intro/tutorial01/
+# Views
 
 import sys
 import datetime
 
-from collections import Counter
-
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.forms import formset_factory, modelformset_factory, inlineformset_factory
-from django.views.generic.edit import FormView, CreateView
+from django.shortcuts import render
+from django.forms import formset_factory
+from django.views.generic.edit import FormView
 from django.views import View
 from django.http import HttpResponseRedirect
-from django.core import serializers
-from django.db import IntegrityError, transaction
 
 from .models import Shooter, Team, Score
 from .forms import BaseTeamFormSet, TeamForm, ShooterForm, ScoreForm
@@ -49,7 +43,7 @@ class SeasonView(View):
 class ScorecardView(View):
 	def get(self, request, year, team):
 	
-		weekRange = range(0,16)
+		week_range = range(0,16)
 
 		scores = Score.objects \
 				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', 'average', \
@@ -69,7 +63,7 @@ class ScorecardView(View):
 		context = {
 			'scores': scorecard,
 			'team': team,
-			'weekRange': weekRange,
+			'weekRange': week_range,
 			'season': year,
 		}
 		
@@ -141,7 +135,7 @@ class NewTeamView(UserPassesTestMixin, View):
 				new_team = Team(team_name=c_team_name, season=c_season)
 				
 				if Team.objects.filter(team_name=c_team_name).exists():
-					messages.add_message(self.request, messages.ERROR, c_team_name + " already exists")
+					messages.add_message(self.request, messages.ERROR, "Team " + c_team_name + " already exists")
 					return HttpResponseRedirect('/shooter/administration/newteam/')
 					
 				else:
