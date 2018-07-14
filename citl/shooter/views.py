@@ -46,8 +46,8 @@ class ScorecardView(View):
 		week_range = range(0,16)
 
 		scores = Score.objects \
-				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', 'average', \
-					'team__captain__first_name', 'team__captain__last_name' ) \
+				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', 'average',
+						'team__captain__first_name', 'team__captain__last_name' ) \
 				.filter(team__season=year, team__team_name=team) \
 				.order_by('shooter__first_name', 'week')
 				
@@ -55,7 +55,8 @@ class ScorecardView(View):
 		for score in scores:
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
 			if personName not in scorecard:
-				scorecard[personName] = { 'weeks': dict.fromkeys(weekRange,'-'), 'count': 0, 'average': score['average'] }
+				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'),
+										  'count': 0, 'average': score['average'] }
 			
 			scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
 			scorecard[personName]['count'] += 1
@@ -93,7 +94,8 @@ class AdministrationView(UserPassesTestMixin, View):
 
 class NewTeamView(UserPassesTestMixin, View):
 	"""View leveraging formset and formset_factory to input a single team and its details, plus any number of shooters.
-	A season is required, and all shooters will be initialized with the default values. The Score transaction is what binds them to a team.
+	A season is required, and all shooters will be initialized with the default values.
+	The Score transaction is what binds them to a team.
 	"""
 	
 	def test_func(self):
@@ -128,7 +130,6 @@ class NewTeamView(UserPassesTestMixin, View):
 			c_season	= team_form.cleaned_data.get('season')
 		
 			new_shooters = []
-			new_scores	= []
 			
 			# Can't process any Shooters unless we have a team name and season
 			if c_team_name and c_season:
@@ -152,7 +153,8 @@ class NewTeamView(UserPassesTestMixin, View):
 					
 					# Need to have a First and Last name. The rest is optional or defaulted
 					if c_first_name and c_last_name:
-						shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email, rookie=c_rookie, guest=c_guest)
+						shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email,
+										  rookie=c_rookie, guest=c_guest)
 						
 						# Check to see if the name was entered twice in the same form
 						if shooter not in new_shooters:
@@ -160,21 +162,98 @@ class NewTeamView(UserPassesTestMixin, View):
 							# Check to see if the shooter already exists in the league
 							# Q: How do I handle multiple shooters with the same name in the league? Could get messy...
 							if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists():
-								messages.add_message(self.request, messages.WARNING, c_first_name + " " + c_last_name + " already exists")
+								messages.add_message(self.request, messages.WARNING, c_first_name + " " + c_last_name +
+													 " already exists in the league")
 							else:
 								shooter.save()
 								ScoreInit = Score(shooter=shooter, team=new_team, date=datetime.datetime.now().date())
 								ScoreInit.save()
 						else:
-							messages.add_message(self.request, messages.WARNING, c_first_name + " " + c_last_name + " was entered more than once on the form")
+							messages.add_message(self.request, messages.WARNING, c_first_name + " " + c_last_name +
+												 " was entered more than once on the form")
 			else:
 				messages.add_message(self.request, messages.ERROR, "A Team Name and Season must be entered")
 
 		else:
 			return HttpResponseRedirect('/shooter/administration/newteam/')
-		
-		return HttpResponseRedirect('/shooter/administration/newteam/')		# Doing it this way will blank out the fields after POST
-		#return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})		# Doing it this way will keep the fields populated after POST
+
+		# Doing it this way will blank out the fields after POST
+		return HttpResponseRedirect('/shooter/administration/newteam/')
+
+		# Doing it this way will keep the fields populated after POST
+	 	#return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})
+
+class NewShooterView(UserPassesTestMixin, View):
+	"""View leveraging formset_factory to add a new shooter to the league
+	"""
+
+	def test_func(self):
+		"""Validate user viewing this page has permission
+		"""
+		return self.request.user.groups.filter(name='League Administrators').exists()
+
+	template_name 	= 'shooter/newshooter.html'
+	this_season 	= datetime.datetime.now().year
+	extra_forms 	= 0
+	TeamFormSet 	= formset_factory(TeamForm, min_num=1, validate_min=True, extra=extra_forms)
+	ShooterFormSet 	= formset_factory(ShooterForm, min_num=1, validate_min=True, extra=extra_forms)
+
+	def get(self, request, *args, **kwargs):
+		"""On initial GET, return form and formset for Team and Shooter
+		"""
+		team_formset = self.TeamFormSet
+		shooter_formset = self.ShooterFormSet
+
+		return render(request, self.template_name, {'team_formset': team_formset, 'shooter_formset': shooter_formset})
+
+	def post(self, request, *args, **kwargs):
+		"""On POST, collect information in the forms, validate it, and add it to the database
+		"""
+		team_formset	= self.TeamFormSet(request.POST)
+		shooter_formset = self.ShooterFormSet(request.POST)
+
+		# Basic form validation conditional
+		if team_formset.is_valid() and shooter_formset.is_valid():
+
+			# iterate through the formset
+			for f in team_formset, shooter_formset:
+
+				c_team_name = f.cleaned_data.get('team_name')
+				c_first_name = f.cleaned_data.get('first_name')
+				c_last_name = f.cleaned_data.get('last_name')
+				c_email = f.cleaned_data.get('email')
+				c_rookie = f.cleaned_data.get('rookie')
+				c_guest = f.cleaned_data.get('rookie')
+
+				# Need to have a Team Name, and First and Last name. The rest is optional or defaulted
+				if c_team_name and c_first_name and c_last_name:
+					shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email,
+									  rookie=c_rookie, guest=c_guest)
+
+					# Check to see if the shooter already exists in the league; brute force...
+					# Q: How do I handle multiple shooters with the same name in the league? Could get messy...
+					if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists():
+						messages.add_message(self.request, messages.WARNING,
+											 c_first_name + " " + c_last_name + " already exists in the league")
+
+					# Check to see if the team entered exists or not
+					elif not Team.objects.filter(team_name=c_team_name, season=self.this_season).exists():
+						messages.add_message(self.request, messages.WARNING,
+											 c_team_name + " does not exist in the " + self.this_season + " season")
+
+					# If the shooter is new and the team exists, save the shooter and give them a WEEK0 score
+					else:
+						team = Team.objects.filter(team_name=c_team_name, season=self.this_season)
+						shooter.save()
+						ScoreInit = Score(shooter=shooter, team=team, date=datetime.datetime.now().date())
+						ScoreInit.save()
+			else:
+				messages.add_message(self.request, messages.ERROR, "A Team Name and Shooter must be entered")
+
+		else:
+			return HttpResponseRedirect('/shooter/administration/newshooter/')
+
+		return HttpResponseRedirect('/shooter/administration/newshooter/')
 
 class TestView(View):
 	"""Playground View
@@ -186,53 +265,6 @@ class TestView(View):
 		}
 		
 		return render(request, 'shooter/test.html', context)
-		
-class NewShooterFormView(UserPassesTestMixin, FormView):
-	"""Form used to add a new Shooter to the league roster
-	"""
-
-	def test_func(self):
-		return self.request.user.groups.filter(name='League Administrators').exists()
-
-	template_name = 'shooter/newshooter.html'
-	form_class = ShooterForm
-	success_url = '/shooter/administration/newshooter/'
-		
-	def form_valid(self, form):
-	
-		response = super().form_valid(form)
-		
-		c_first_name 	= form.cleaned_data['first_name']
-		c_last_name		= form.cleaned_data['last_name']
-		c_email			= form.cleaned_data['email']
-		c_rookie		= form.cleaned_data['rookie']
-		c_guest			= form.cleaned_data['guest']
-		
-		shooter_object = Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists()
-		
-		if shooter_object:
-			message = "ERROR: " + c_first_name + " " + c_last_name + " already exists"
-		else:
-			new_shooter 	= Shooter(first_name = c_first_name,
-								last_name = c_last_name,
-								email = c_email,
-								rookie = c_rookie,
-								guest = c_guest
-								)
-			new_shooter.save()
-			message		= c_first_name + " " + c_last_name + " successfully added"
-		
-		messages.add_message(self.request, messages.INFO, message)
-		
-		return response
-		
-	def form_invalid(self, form):
-	
-		response = super().form_invalid(form)
-		
-		form = ShooterForm()
-		
-		return response
 
 class NewScoreFormView(UserPassesTestMixin, FormView):
 

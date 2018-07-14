@@ -4,4 +4,16 @@
 	<div class="general-text">
 		<p>{{ test }}</p>
 	</div>
+
+	<form id="new-shooter" action="{% url 'shooter:newshooter' %}" method="post">
+	<table id="input-tables">
+		{% for f in test %}
+			{{ f }}
+		{% endfor %}
+		{% csrf_token %}
+		{{ test.management_form }}
+	</table>
+	</p>
+	<p><input class="button" type="submit" value="Submit"></p>
+	</form>
 {% endblock %}
