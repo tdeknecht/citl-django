@@ -5,16 +5,38 @@
 		<div id="main-header">
 			New Shooter
 		</div>
-		<form action="{% url 'shooter:newshooter' %}" method="post">
-		{% csrf_token %}
-		{{ form }}
-		<input class="button" type="submit" value="Submit">
+		<form id="new-shooter" action="{% url 'shooter:newshooter' %}" method="post">
+		<table id="input-tables">
+			<tr>
+				<th>Team Name</th>
+				<th>First Name</th>
+				<th>Last Name</th>
+				<th>Email</th>
+				<th>Rookie</th>
+				<th>Guest</th>
+			</tr>
+			<tr>
+				<td>{{ team_form.team_name }}</td>
+				<td>{{ shooter_form.first_name }}</td>
+				<td>{{ shooter_form.last_name }} </td>
+				<td>{{ shooter_form.email }} </td>
+				<td>{{ shooter_form.rookie }} </td>
+				<td>{{ shooter_form.guest }} </td>
+			</tr>
+			{% csrf_token %}
+		</table>
+		</p>
+		<p><input class="button" type="submit" value="Submit"></p>
 		</form>
+
+		</p>
 		<p>
 		{% if messages %}
-			{% for m in messages %}
-				{{ m }}
+		<ul class="messages">
+			{% for message in messages %}
+			<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
 			{% endfor %}
+		</ul>
 		{% endif %}
 		</p>
 	</div>
