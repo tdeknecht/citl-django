@@ -15,30 +15,19 @@
 				<th>Rookie</th>
 				<th>Guest</th>
 			</tr>
-			{% for f in team_formset %}
 			<tr>
-				<td>{{ f.team_name }}</td>
-			{% endfor %}
-			{% for f in shooter_formset %}
-				<td>{{ f.first_name }}</td>
-				<td>{{ f.last_name }} </td>
-				<td>{{ f.email }} </td>
-				<td>{{ f.rookie }} </td>
-				<td>{{ f.guest }} </td>
+				<td>{{ team_form.team_name }}</td>
+				<td>{{ shooter_form.first_name }}</td>
+				<td>{{ shooter_form.last_name }} </td>
+				<td>{{ shooter_form.email }} </td>
+				<td>{{ shooter_form.rookie }} </td>
+				<td>{{ shooter_form.guest }} </td>
 			</tr>
-			{% endfor %}
 			{% csrf_token %}
-			{{ shooter_formset.management_form }}
 		</table>
 		</p>
 		<p><input class="button" type="submit" value="Submit"></p>
 		</form>
-
-		<script type="text/javascript">
-			$(function() {
-				$('#new-shooter table tr').formset({addText: 'Add another shooter', deleteText: ' remove'});
-			})
-		</script>
 
 		</p>
 		<p>
