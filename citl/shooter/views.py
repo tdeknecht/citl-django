@@ -7,42 +7,44 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib import messages
 from django.shortcuts import render
 from django.forms import formset_factory
-from django.views.generic.edit import FormView
 from django.views import View
 from django.http import HttpResponseRedirect
 
 from .models import Shooter, Team, Score
-from .forms import BaseTeamFormSet, TeamForm, TeamChoiceForm, ShooterForm, ScoreForm
-	
+from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreForm
+
 class SeasonsView(View):	
 	def get(self, request):
-	
+
 		all_season = Team.objects.values('season', 'team_name').order_by('-season').distinct()
-		
+
 		now = datetime.datetime.now()
-	
+
 		context = {
 			'all_season': all_season,
 			'current_year': now.year,
-		}		
+		}
 
 		return render(request, 'shooter/seasons.html', context)
-	
-class SeasonView(View):	
+
+class SeasonView(View):
+
+	template_name = 'shooter/season.html'
+
 	def get(self, request, year):
-	
+
 		season = Team.objects.values('season', 'team_name').filter(season=year).distinct()
 
 		context = {
 			'season': season,
 			'year': year,
 		}
-		
-		return render(request, 'shooter/season.html', context)
+
+		return render(request, self.template_name, context)
 
 class ScorecardView(View):
 	def get(self, request, year, team):
-	
+
 		week_range = range(0,16)
 
 		scores = Score.objects \
@@ -50,100 +52,94 @@ class ScorecardView(View):
 						'team__captain__first_name', 'team__captain__last_name' ) \
 				.filter(team__season=year, team__team_name=team) \
 				.order_by('shooter__first_name', 'week')
-				
+
 		scorecard = {}
 		for score in scores:
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
 			if personName not in scorecard:
 				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'),
 										  'count': 0, 'average': score['average'] }
-			
+
 			scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
 			scorecard[personName]['count'] += 1
-		
+
 		context = {
 			'scores': scorecard,
 			'team': team,
 			'weekRange': week_range,
 			'season': year,
 		}
-		
+
 		return render(request, 'shooter/scorecard.html', context)
-		
+
 class AdministrationView(UserPassesTestMixin, View):
-	"""Landing page for administrative tasks
-	"""
+
+	template_name = 'shooter/administration.html'
+	this_season = datetime.datetime.now().year
 
 	def test_func(self):
 		"""Validate user viewing this page has permission
 		"""
 		return self.request.user.groups.filter(name='League Administrators').exists()
-		
+
 	def get(self, request):
-	
-		now = datetime.datetime.now()
-	
-		this_season = Team.objects.values('team_name').order_by('team_name').filter(season=now.year)
-	
+
+		season = Team.objects.values('team_name').order_by('team_name').filter(season=self.this_season)
+
 		context = {
-			'this_season': this_season,
-			'current_year': now.year,
-		}	
-		
-		return render(request, 'shooter/administration.html', context)
-		
+			'season': season,
+		}
+
+		return render(request, self.template_name, context)
+
 # FORM VIEWS
 
 class NewTeamView(UserPassesTestMixin, View):
-	"""View leveraging formset and formset_factory to input a single team and its details, plus any number of shooters.
-	A season is required, and all shooters will be initialized with the default values.
-	The Score transaction is what binds them to a team.
-	"""
-	
-	def test_func(self):
-		"""Validate user viewing this page has permission
-		"""
-		return self.request.user.groups.filter(name='League Administrators').exists()
-		
+
 	template_name 	= 'shooter/newteam.html'
 	this_season		= datetime.datetime.now().year
 	extra_forms		= 14
 	TeamForm		= TeamForm
 	ShooterFormSet	= formset_factory(ShooterForm, min_num=1, validate_min=True, extra=extra_forms)
-	
+
+	def test_func(self):
+		"""Validate user viewing this page has permission
+		"""
+		return self.request.user.groups.filter(name='League Administrators').exists()
+
 	def get(self, request, *args, **kwargs):
 		"""On initial GET, return form and formset for Team and Shooter
 		"""
 		team_form = self.TeamForm
 		shooter_formset = self.ShooterFormSet
-		
+
 		return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})
-		
+
 	def post(self, request, *args, **kwargs):
 		"""On POST, collect information in the forms, validate it, and add it to the database
 		"""
 		team_form = self.TeamForm(request.POST)
 		shooter_formset = self.ShooterFormSet(request.POST)
-		
+
 		# Basic form validation conditional
 		if team_form.is_valid() and shooter_formset.is_valid():
-		
+
 			c_team_name = team_form.cleaned_data.get('team_name')
 			c_season	= team_form.cleaned_data.get('season')
-		
+
 			new_shooters = []
-			
+
 			# Can't process any Shooters unless we have a team name and season
 			if c_team_name and c_season:
 				new_team = Team(team_name=c_team_name, season=c_season)
-				
+
 				if Team.objects.filter(team_name=c_team_name).exists():
 					messages.add_message(self.request, messages.ERROR, "Team " + c_team_name + " already exists")
 					return HttpResponseRedirect('/shooter/administration/newteam/')
-					
+
 				else:
 					new_team.save()
-				
+
 				# If a team was entered correctly, continue processing Shooters
 				for f in shooter_formset:
 
@@ -152,12 +148,12 @@ class NewTeamView(UserPassesTestMixin, View):
 					c_email 		= f.cleaned_data.get('email')
 					c_rookie		= f.cleaned_data.get('rookie')
 					c_guest			= f.cleaned_data.get('rookie')
-					
+
 					# Need to have a First and Last name. The rest is optional or defaulted
 					if c_first_name and c_last_name:
 						shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email,
 										  rookie=c_rookie, guest=c_guest)
-						
+
 						# Check to see if the name was entered twice in the same form
 						if shooter not in new_shooters:
 
@@ -183,22 +179,18 @@ class NewTeamView(UserPassesTestMixin, View):
 		return HttpResponseRedirect('/shooter/administration/newteam/')
 
 		# Doing it this way will keep the fields populated after POST
-	 	#return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})
+		# return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})
 
 class NewShooterView(UserPassesTestMixin, View):
-	"""View leveraging formset_factory to add a new shooter to the league
-	"""
+
+	template_name = 'shooter/newshooter.html'
+	this_season = datetime.datetime.now().year
+	team_form = TeamChoiceForm
+	# team_form.fields['team_name'].initial = Team.objects.filter(season=this_season)
+	shooter_form = ShooterForm
 
 	def test_func(self):
-		"""Validate user viewing this page has permission
-		"""
 		return self.request.user.groups.filter(name='League Administrators').exists()
-
-	template_name 	= 'shooter/newshooter.html'
-	this_season 	= datetime.datetime.now().year
-	team_form 		= TeamChoiceForm
-	#team_form.fields['team_name'].initial = Team.objects.filter(season=this_season)
-	shooter_form	= ShooterForm
 
 	def get(self, request):
 		"""On initial GET, return form and formset for Team and Shooter
@@ -252,18 +244,19 @@ class NewShooterView(UserPassesTestMixin, View):
 
 class NewScoreView(UserPassesTestMixin, View):
 
+	template_name = 'shooter/newscore.html'
+
 	def test_func(self):
+
 		return self.request.user.groups.filter(name='League Administrators').exists()
 
-	template_name = 'shooter/newscore.html'
-	form_class = ScoreForm
-	success_url = '/shooter/administration/newscore/'
+	def get(self, request, team):
+
+		return render(request, self.template_name, {'team': team})
 
 class TestView(View):
-	"""Playground View
-	"""
-
 	def get(self, request):
+
 		context = {
 			'test': "Test"
 		}
