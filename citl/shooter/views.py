@@ -9,6 +9,7 @@ from django.shortcuts import render
 from django.forms import formset_factory
 from django.views import View
 from django.http import HttpResponseRedirect
+from django.db import models
 
 from .models import Shooter, Team, Score
 from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreForm
@@ -16,13 +17,16 @@ from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreForm
 class SeasonsView(View):	
 	def get(self, request):
 
-		all_season = Team.objects.values('season', 'team_name').order_by('-season').distinct()
-
-		now = datetime.datetime.now()
+		# In the absense of something yet discovered, I used Extract. This is only available with certain databases!
+		all_season = Score.objects \
+			.annotate(season=models.functions.Extract('date', 'year')) \
+			.values('season','team__team_name') \
+			.order_by('-season') \
+			.distinct()
 
 		context = {
 			'all_season': all_season,
-			'current_year': now.year,
+			'current_year': datetime.datetime.now().year,
 		}
 
 		return render(request, 'shooter/seasons.html', context)
