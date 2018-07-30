@@ -14,7 +14,10 @@ from django.db import models
 from .models import Shooter, Team, Score
 from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreForm
 
-class SeasonsView(View):	
+class SeasonsView(View):
+
+	template_name = 'shooter/seasons.html'
+
 	def get(self, request):
 
 		# In the absense of something yet discovered, I used Extract. This is only available with certain databases!
@@ -29,7 +32,7 @@ class SeasonsView(View):
 			'current_year': datetime.datetime.now().year,
 		}
 
-		return render(request, 'shooter/seasons.html', context)
+		return render(request, self.template_name, context)
 
 class SeasonView(View):
 
@@ -37,7 +40,9 @@ class SeasonView(View):
 
 	def get(self, request, year):
 
-		season = Team.objects.values('season', 'team_name').filter(season=year).distinct()
+		season = Score.objects \
+			.annotate(season=models.functions.Extract('date', 'year')) \
+			.values('season', 'team__team_name').filter(season=year).distinct()
 
 		context = {
 			'season': season,

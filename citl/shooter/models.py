@@ -29,7 +29,7 @@ class Team(models.Model):
 
 	team_name = models.CharField(max_length=100)
 	captain = models.ForeignKey(Shooter, blank=True, null=True, on_delete=models.CASCADE)
-	season = models.IntegerField()
+	season = models.IntegerField() # no longer used. Will remove in future release once completely sure
 	
 class Score(models.Model):
 

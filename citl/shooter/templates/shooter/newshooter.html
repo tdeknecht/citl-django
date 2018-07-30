@@ -29,6 +29,12 @@
 		<p><input class="button" type="submit" value="Submit"></p>
 		</form>
 
+		<script type="text/javascript">
+			$(function() {
+				$('#new-shooter table tr').formset({addText: 'Add another shooter', deleteText: ' remove'});
+			})
+		</script>
+
 		</p>
 		<p>
 		{% if messages %}
