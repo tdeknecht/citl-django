@@ -3,12 +3,32 @@
 {% block content %}
 	<div class="general-text">
 		<div id="main-header">
-			New Score for Team: {{ team }}
+			New Score
 		</div>
-		<form action="{% url 'shooter:newscore' team %}" method="post">
-		{% csrf_token %}
-		{{ form }}
-		<input class="button" type="submit" value="Submit">
+		<form id="new-score" action="{% url 'shooter:newscore' %}" method="post">
+			<table id="input-tables">
+				{% csrf_token %}
+				<tr>
+					<th>Team</th>
+					<th>Shooter</th>
+					<th>Date</th>
+					<th>Week</th>
+					<th>B1</th>
+					<th>B2</th>
+				</tr>
+				{% for score_form in score_form %}
+				<tr>
+					<td>{{ score_form.team }}</td>
+					<td>{{ score_form.shooter }}</td>
+					<td>{{ score_form.date }}</td>
+					<td>{{ score_form.week }}</td>
+					<td>{{ score_form.bunker_one }}</td>
+					<td>{{ score_form.bunker_two }}</td>
+				</tr>
+				{% endfor %}
+			</table>
+			{{ score_formset.management_form }}
+			<input class="button" type="submit" value="Submit">
 		</form>
 		<p>
 		{% if messages %}

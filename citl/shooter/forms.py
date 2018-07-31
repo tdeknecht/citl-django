@@ -11,7 +11,7 @@ class TeamForm(forms.ModelForm):
 	
 	class Meta:
 		model = Team
-		fields = ['team_name', 'season']
+		fields = ['team_name', 'captain']
 
 class TeamChoiceForm(forms.Form):
 	team_name = forms.ChoiceField(choices=[])
@@ -19,7 +19,6 @@ class TeamChoiceForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		super(TeamChoiceForm, self).__init__(*args, **kwargs)
 		self.fields['team_name'].choices = Team.objects.values_list('team_name', 'team_name') \
-			.filter(season=datetime.datetime.now().year) \
 			.distinct()
 
 class ShooterForm(forms.ModelForm):
@@ -33,12 +32,7 @@ class ScoreForm(forms.ModelForm):
 		model = Score
 		fields = ['team', 'shooter', 'date', 'week', 'bunker_one', 'bunker_two']
 
-	team		= forms.ModelMultipleChoiceField(queryset=Team.objects.all().filter(season=datetime.datetime.now().year))
-	#shooter	= Dynamically choose shooter based on what team
-	
-	#def __init__(self, *args, **kwargs):
-		#super().__init__(*args, **kwargs)
-		#self.fields['shooter'].queryset = Shooter.objects.none()
+	#team = forms.ModelMultipleChoiceField(queryset=Team.objects.all())
 
 # Forms
 

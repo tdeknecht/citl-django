@@ -5,8 +5,10 @@
 		<div id="main-header">
 			<a href="{% url 'shooter:newteam' %}">New Team</a>
 			<p><a href="{% url 'shooter:newshooter' %}">New Shooter</a></p>
-			New Score
+			<a href="{% url 'shooter:newscore' %}">New Score</a>
 		</div>
+
+		{% comment %}
 		<table id="shooter-tables">
 		{% for team in season %}
 			<tr>
@@ -14,5 +16,6 @@
 			</tr>
 		{% endfor %}
 		</table>
+		{% endcomment %}
 	</div>
 {% endblock %}

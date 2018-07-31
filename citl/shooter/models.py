@@ -17,19 +17,14 @@ class Shooter(models.Model):
 	rookie = models.BooleanField(default=False)
 	guest = models.BooleanField(default=False)
 	
-	#def clean(self):
-	#	self.first_name = self.first_name.capitalize()
-	#	self.last_name = self.last_name.capitalize()
-	
 class Team(models.Model):
 
 	def __str__(self):
-		return str(self.season) + ":" + self.team_name
-		#return self.team_name
+		return self.team_name
 
 	team_name = models.CharField(max_length=100)
 	captain = models.ForeignKey(Shooter, blank=True, null=True, on_delete=models.CASCADE)
-	season = models.IntegerField() # no longer used. Will remove in future release once completely sure
+	season = models.IntegerField() # remove this and update models. It's no longer needed
 	
 class Score(models.Model):
 
