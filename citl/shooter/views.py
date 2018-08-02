@@ -6,13 +6,13 @@ import datetime
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib import messages
 from django.shortcuts import render
-from django.forms import formset_factory
+from django.forms import formset_factory, modelformset_factory, inlineformset_factory
 from django.views import View
 from django.http import HttpResponseRedirect
 from django.db import models
 
 from .models import Shooter, Team, Score
-from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreForm
+from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreFormTeam, ScoreFormWeek
 
 class SeasonsView(View):
 
@@ -60,7 +60,7 @@ class ScorecardView(View):
 				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', 'average',
 						'team__captain__first_name', 'team__captain__last_name' ) \
 				.filter(team__team_name=team) \
-				.order_by('shooter__first_name', 'week')
+				.order_by('shooter__last_name', 'shooter__first_name', 'week')
 
 		scorecard = {}
 		for score in scores:
@@ -93,7 +93,13 @@ class AdministrationView(UserPassesTestMixin, View):
 
 	def get(self, request):
 
-		season = Team.objects.values('team_name').order_by('team_name').filter(season=self.this_season)
+		season = Score.objects \
+			.annotate(season=models.functions.Extract('date', 'year')) \
+			.values('team__team_name') \
+			.filter(season=self.this_season) \
+			.distinct()
+
+		#season = Score.objects.values('team').order_by('team').distinct()
 
 		context = {
 			'season': season,
@@ -114,7 +120,7 @@ class NewTeamView(UserPassesTestMixin, View):
 		return self.request.user.groups.filter(name='League Administrators').exists()
 
 	def get(self, request, *args, **kwargs):
-		"""On initial GET, return form and formset for Team and Shooter
+		"""On initial GET, return forms
 		"""
 		team_form = self.TeamForm
 
@@ -162,7 +168,7 @@ class NewShooterView(UserPassesTestMixin, View):
 		return self.request.user.groups.filter(name='League Administrators').exists()
 
 	def get(self, request):
-		"""On initial GET, return form and formset for Team and Shooter
+		"""On initial GET, return forms
 		"""
 		team_form = self.team_form
 		shooter_form = self.shooter_form
@@ -214,21 +220,81 @@ class NewShooterView(UserPassesTestMixin, View):
 class NewScoreView(UserPassesTestMixin, View):
 
 	template_name = 'shooter/newscore.html'
-	score_form = ScoreForm
-	extra_forms = 14
-	score_formset = formset_factory(ScoreForm, min_num=1, validate_min=True, extra=extra_forms)
+	this_season = datetime.datetime.now().year
+	score_form_team = ScoreFormTeam
+	score_formset_week = modelformset_factory(Score, form=ScoreFormWeek)
 
 	def test_func(self):
 
 		return self.request.user.groups.filter(name='League Administrators').exists()
 
-	#def get(self, request, team):
-	def get(self, request):
-		"""On initial GET, return form and formset for Team and Shooter
+	def get(self, request, team):
+		"""On initial GET, return forms
 		"""
-		score_form = self.score_formset
 
-		return render(request, self.template_name, {'score_form': score_form})
+		# initialize the first bit of the form: date and week. We only need to enter this once per team
+		date_init = {
+			'date': datetime.datetime.today(),
+			'week': 0,
+		}
+
+		# get the team_id for the team_name that was passed via URLs
+		team_id = Team.objects.get(team_name=team)
+		# pull the shooters into a queryset to prepoulate the modelformset, filtering on current year and team_id
+		qset = Score.objects \
+			.annotate(season=models.functions.Extract('date', 'year')) \
+			.filter(season=self.this_season, team=team_id) \
+			.order_by('shooter__last_name', 'shooter__first_name') \
+			.distinct('shooter__last_name', 'shooter__first_name')
+
+		# build the forms with their respective initalized data
+		score_form_team = self.score_form_team(initial=date_init)
+		score_formset_week = self.score_formset_week(queryset=qset)
+
+		context = {
+			'score_form_team': score_form_team,
+			'score_formset_week': score_formset_week,
+			'team': team,
+		}
+
+		return render(request, self.template_name, context)
+
+	def post(self, request, team):
+		"""On POST, validate data entry and save to back end
+		"""
+
+		score_form_team = self.score_form_team(request.POST)
+		score_formset_week = self.score_formset_week(request.POST)
+
+		if score_form_team.is_valid() and score_formset_week.is_valid():
+
+			c_date = score_form_team.cleaned_data.get('date')
+			c_week = score_form_team.cleaned_data.get('week')
+
+			print(c_date, c_week)
+
+			for f in score_formset_week:
+
+				c_shooter = f.cleaned_data.get('shooter')
+				c_b1 = f.cleaned_data.get('bunker_one')
+				c_b2 = f.cleaned_data.get('bunker_two')
+
+				print(c_shooter, c_b1, c_b2)
+
+		else:
+			print("Header", score_form_team.errors)
+			print("Scores", score_formset_week.errors)
+			for e in score_formset_week.errors:
+				print(e)
+			messages.add_message(self.request, messages.ERROR, "Validation error")
+
+		context = {
+			'score_form_team': score_form_team,
+			'score_formset_week': score_formset_week,
+			'team': team,
+		}
+
+		return render(request, self.template_name, context)
 
 class TestView(View):
 	def get(self, request):

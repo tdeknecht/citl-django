@@ -1,5 +1,3 @@
-import datetime
-
 from django import forms
 from django.forms.formsets import BaseFormSet
 
@@ -26,13 +24,22 @@ class ShooterForm(forms.ModelForm):
 		model	= Shooter
 		fields	= ['first_name', 'last_name', 'email', 'rookie', 'guest']
 
-class ScoreForm(forms.ModelForm):
+class DateInput(forms.DateInput):
+	input_type = 'date'
+
+class ScoreFormTeam(forms.ModelForm):
+	class Meta:
+		model = Score
+		fields = ['date', 'week']
+		widgets = {
+			'date': DateInput(),
+		}
+
+class ScoreFormWeek(forms.ModelForm):
 	
 	class Meta:
 		model = Score
-		fields = ['team', 'shooter', 'date', 'week', 'bunker_one', 'bunker_two']
-
-	#team = forms.ModelMultipleChoiceField(queryset=Team.objects.all())
+		fields = ['shooter', 'bunker_one', 'bunker_two']
 
 # Forms
 
