@@ -36,10 +36,21 @@ class ScoreFormTeam(forms.ModelForm):
 		}
 
 class ScoreFormWeek(forms.ModelForm):
-	
 	class Meta:
 		model = Score
 		fields = ['shooter', 'bunker_one', 'bunker_two']
+
+		initial = {
+			'bunker_one': 0,
+			'bunker_two': 0,
+		}
+
+	#def __init__(self, *args, **kwargs):
+		#super(ScoreFormWeek, self).__init__(*args, **kwargs)
+
+		#self.fields['shooter'].widget.attrs['disabled'] = True
+		#self.fields['bunker_one'].initial = 0
+
 
 # Forms
 

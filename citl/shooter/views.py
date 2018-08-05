@@ -10,6 +10,7 @@ from django.forms import formset_factory, modelformset_factory, inlineformset_fa
 from django.views import View
 from django.http import HttpResponseRedirect
 from django.db import models
+from django.db.models import F
 
 from .models import Shooter, Team, Score
 from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreFormTeam, ScoreFormWeek
@@ -84,7 +85,6 @@ class ScorecardView(View):
 class AdministrationView(UserPassesTestMixin, View):
 
 	template_name = 'shooter/administration.html'
-	this_season = datetime.datetime.now().year
 
 	def test_func(self):
 		"""Validate user viewing this page has permission
@@ -96,7 +96,7 @@ class AdministrationView(UserPassesTestMixin, View):
 		season = Score.objects \
 			.annotate(season=models.functions.Extract('date', 'year')) \
 			.values('team__team_name') \
-			.filter(season=self.this_season) \
+			.order_by('team__team_name') \
 			.distinct()
 
 		#season = Score.objects.values('team').order_by('team').distinct()
@@ -247,6 +247,9 @@ class NewScoreView(UserPassesTestMixin, View):
 			.order_by('shooter__last_name', 'shooter__first_name') \
 			.distinct('shooter__last_name', 'shooter__first_name')
 
+		# initialize the scores to 0
+		score_init = [{'bunker_one': 0, 'bunker_two': 0} for shooters in qset]
+
 		# build the forms with their respective initalized data
 		score_form_team = self.score_form_team(initial=date_init)
 		score_formset_week = self.score_formset_week(queryset=qset)
@@ -270,17 +273,37 @@ class NewScoreView(UserPassesTestMixin, View):
 
 			c_date = score_form_team.cleaned_data.get('date')
 			c_week = score_form_team.cleaned_data.get('week')
-
-			print(c_date, c_week)
+			team_id = Team.objects.get(team_name=team)
 
 			for f in score_formset_week:
+				# Don't do anything with fields that don't have a shooter selected
+				if f.cleaned_data.get('shooter') is not None:
+					c_shooter = f.cleaned_data.get('shooter')
+					c_b1 = f.cleaned_data.get('bunker_one')
+					c_b2 = f.cleaned_data.get('bunker_two')
 
-				c_shooter = f.cleaned_data.get('shooter')
-				c_b1 = f.cleaned_data.get('bunker_one')
-				c_b2 = f.cleaned_data.get('bunker_two')
+					bunker_total = [c_b1 + c_b2]
 
-				print(c_shooter, c_b1, c_b2)
+					# sum all current bunkers from this year to calculate average later on
+					bunker_qset = Score.objects \
+						.annotate(season=models.functions.Extract('date', 'year'),
+								  bunker_total=F('bunker_one') + F('bunker_two')) \
+						.filter(season=self.this_season, team=team_id, shooter=c_shooter)
 
+					# add the queried and summed bunkers to the bunker list
+					for q in bunker_qset:
+						bunker_total.append(q.bunker_total)
+
+					# calculate average based on the shooter and the current season
+					average = sum(bunker_total) / float(len(bunker_total))
+
+					# build the new score to add to the database
+					new_score = Score(shooter=c_shooter, team=team_id, date=c_date, week=c_week,
+									  bunker_one=c_b1, bunker_two=c_b2,
+									  average=average)
+
+					#print(new_score)
+					new_score.save()
 		else:
 			print("Header", score_form_team.errors)
 			print("Scores", score_formset_week.errors)

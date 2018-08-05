@@ -29,7 +29,11 @@ class Team(models.Model):
 class Score(models.Model):
 
 	def __str__(self):
-		return str(self.date) + " " + str(self.week) + ":" + self.shooter.first_name + " " + self.shooter.last_name
+		return str(self.team) + ": " \
+				+ str(self.shooter) + " " \
+				+ str(self.date) + " " \
+				+ str(self.week) + " " \
+				+ str(self.bunker_one) + " " + str(self.bunker_two)
 		
 	WEEK_CHOICES = []
 	for n in range(0,16):
