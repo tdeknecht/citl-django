@@ -277,7 +277,7 @@ class NewScoreView(UserPassesTestMixin, View):
 
 			for f in score_formset_week:
 				# Don't do anything with fields that don't have a shooter selected
-				if f.cleaned_data.get('shooter') is not None:
+				if f.cleaned_data.get('shooter') is not None or (f.cleaned_data.get('bunker_one') + f.cleaned_data.get('bunker_two')) > 0:
 					c_shooter = f.cleaned_data.get('shooter')
 					c_b1 = f.cleaned_data.get('bunker_one')
 					c_b2 = f.cleaned_data.get('bunker_two')
