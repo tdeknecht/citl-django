@@ -5,11 +5,13 @@ from .models import Shooter, Team, Score
 
 # ModelForms
 
+
 class TeamForm(forms.ModelForm):
 	
 	class Meta:
 		model = Team
-		fields = ['team_name', 'captain']
+		fields = ['team_name']
+
 
 class TeamChoiceForm(forms.Form):
 	team_name = forms.ChoiceField(choices=[])
@@ -19,13 +21,16 @@ class TeamChoiceForm(forms.Form):
 		self.fields['team_name'].choices = Team.objects.values_list('team_name', 'team_name') \
 			.distinct()
 
+
 class ShooterForm(forms.ModelForm):
 	class Meta:
 		model	= Shooter
-		fields	= ['first_name', 'last_name', 'email', 'rookie', 'guest']
+		fields	= ['first_name', 'last_name', 'email', 'rookie', 'guest', 'captain']
+
 
 class DateInput(forms.DateInput):
 	input_type = 'date'
+
 
 class ScoreFormTeam(forms.ModelForm):
 	class Meta:
@@ -34,6 +39,7 @@ class ScoreFormTeam(forms.ModelForm):
 		widgets = {
 			'date': DateInput(),
 		}
+
 
 class ScoreFormWeek(forms.ModelForm):
 	class Meta:
@@ -73,11 +79,12 @@ class ShooterForm(forms.Form):
 """
 
 # BaseFormSets
-			
+
+
 class BaseTeamFormSet(BaseFormSet):
 	def clean(self):
-		#Adds validation to check that no two teams have the same name or captain
-		#and that all teams have a team name and captain
+		# Adds validation to check that no two teams have the same name or captain
+		# and that all teams have a team name and captain
 		if any(self.errors):
 			return
 

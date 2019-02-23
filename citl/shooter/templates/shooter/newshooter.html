@@ -12,6 +12,7 @@
 				<th>First Name</th>
 				<th>Last Name</th>
 				<th>Email</th>
+				<th>Captain</th>
 				<th>Rookie</th>
 				<th>Guest</th>
 				<th></th>
@@ -21,6 +22,7 @@
 				<td>{{ shooter_form.first_name }}</td>
 				<td>{{ shooter_form.last_name }} </td>
 				<td>{{ shooter_form.email }} </td>
+				<td>{{ shooter_form.captain }}</td>
 				<td>{{ shooter_form.rookie }} </td>
 				<td>{{ shooter_form.guest }} </td>
 				<td></td>
@@ -30,12 +32,13 @@
 		</p>
 		<p><input class="button" type="submit" value="Submit"></p>
 		</form>
-
+		<!--
 		<script type="text/javascript">
 			$(function() {
 				$('#new-shooter table tr').formset({addText: 'Add another shooter', deleteText: ' remove'});
 			})
 		</script>
+		-->
 
 		</p>
 		<p>

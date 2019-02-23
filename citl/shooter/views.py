@@ -58,19 +58,24 @@ class ScorecardView(View):
 		week_range = range(0,16)
 
 		scores = Score.objects \
-				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', 'average',
-						'team__captain__first_name', 'team__captain__last_name' ) \
+				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two') \
 				.filter(team__team_name=team) \
 				.order_by('shooter__last_name', 'shooter__first_name', 'week')
 
 		scorecard = {}
 		for score in scores:
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
+			# For each new person pulled from the Team, build their scorecard line and calculate average
 			if personName not in scorecard:
 				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'),
-										  'count': 0, 'average': score['average'] }
+										  'count': 0, 'average': 0 }
 
+			# Add the two bunkers for that week
 			scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
+
+			# Calculate the shooters overall avarage. This is where the special league formulas will apply
+			# TODO: Apply special formulas beyond just basic average calculation
+			scorecard[personName]['average'] = 50
 			scorecard[personName]['count'] += 1
 
 		context = {
@@ -87,9 +92,9 @@ class AdministrationView(UserPassesTestMixin, View):
 	template_name = 'shooter/administration.html'
 
 	def test_func(self):
-		"""Validate user viewing this page has permission
+		"""Validate user viewing this page has permissions
 		"""
-		return self.request.user.groups.filter(name='League Administrators').exists()
+		return self.request.user.groups.filter(name='league_admin_g').exists()
 
 	def get(self, request):
 
@@ -117,7 +122,7 @@ class NewTeamView(UserPassesTestMixin, View):
 	def test_func(self):
 		"""Validate user viewing this page has permission
 		"""
-		return self.request.user.groups.filter(name='League Administrators').exists()
+		return self.request.user.groups.filter(name='league_admin_g').exists()
 
 	def get(self, request, *args, **kwargs):
 		"""On initial GET, return forms
@@ -135,10 +140,9 @@ class NewTeamView(UserPassesTestMixin, View):
 		if team_form.is_valid():
 
 			c_team_name = team_form.cleaned_data.get('team_name')
-			c_captain = team_form.cleaned_data.get('captain')
 
 			if c_team_name:
-				new_team = Team(team_name=c_team_name, captain=c_captain)
+				new_team = Team(team_name=c_team_name)
 
 				if Team.objects.filter(team_name=c_team_name).exists():
 					messages.add_message(self.request, messages.ERROR, "Team " + c_team_name + " already exists")
@@ -165,7 +169,7 @@ class NewShooterView(UserPassesTestMixin, View):
 	shooter_form = ShooterForm
 
 	def test_func(self):
-		return self.request.user.groups.filter(name='League Administrators').exists()
+		return self.request.user.groups.filter(name='league_admin_g').exists()
 
 	def get(self, request):
 		"""On initial GET, return forms
@@ -226,7 +230,7 @@ class NewScoreView(UserPassesTestMixin, View):
 
 	def test_func(self):
 
-		return self.request.user.groups.filter(name='League Administrators').exists()
+		return self.request.user.groups.filter(name='league_admin_g').exists()
 
 	def get(self, request, team):
 		"""On initial GET, return forms
