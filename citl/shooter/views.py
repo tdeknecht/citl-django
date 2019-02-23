@@ -73,9 +73,10 @@ class ScorecardView(View):
 			# Add the two bunkers for that week
 			scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
 
-			# Calculate the shooters overall avarage. This is where the special league formulas will apply
-			# TODO: Apply special formulas beyond just basic average calculation
-			scorecard[personName]['average'] = 50
+			# Calculate the shooters overall avarage via separate method
+			scorecard[personName]['average'] = mean([1,50])
+
+			# Bump the count and circle back
 			scorecard[personName]['count'] += 1
 
 		context = {
@@ -331,3 +332,8 @@ class TestView(View):
 		}
 
 		return render(request, 'shooter/test.html', context)
+
+# Special formulas for calculating averages
+# TODO: Build special formulas
+def mean(numbers):
+	return float(sum(numbers)) / max(len(numbers), 1)
