@@ -67,6 +67,7 @@ class ScorecardView(View):
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
 			# For each new person pulled from the Team, build their scorecard line and calculate average
 			if personName not in scorecard:
+				avg_l = []
 				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'),
 										  'count': 0, 'average': 0 }
 
@@ -74,7 +75,10 @@ class ScorecardView(View):
 			scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
 
 			# Calculate the shooters overall avarage via separate method
-			scorecard[personName]['average'] = mean([1,50])
+			# Right now this is very inneficient because it's being called on every loop.
+			# TODO: Fix how inneficient this is
+			avg_l.append(scorecard[personName]['weeks'][score['week']])
+			scorecard[personName]['average'] = mean(avg_l)
 
 			# Bump the count and circle back
 			scorecard[personName]['count'] += 1
@@ -202,7 +206,7 @@ class NewShooterView(UserPassesTestMixin, View):
 								  rookie=c_rookie, guest=c_guest)
 
 				# Check to see if the shooter already exists in the league; brute force...
-				# Q: How do I handle multiple shooters with the same name in the league? Could get messy...
+				# TODO: How do I handle multiple shooters with the same name in the league? Could get messy...
 				if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists():
 					messages.add_message(self.request, messages.WARNING,
 										 c_first_name + " " + c_last_name + " already exists in the league")
@@ -282,39 +286,35 @@ class NewScoreView(UserPassesTestMixin, View):
 
 			for f in score_formset_week:
 				# Don't do anything with fields that don't have a shooter selected
-				if f.cleaned_data.get('shooter') is not None or (f.cleaned_data.get('bunker_one') + f.cleaned_data.get('bunker_two')) > 0:
+				# if f.cleaned_data.get('shooter') is not None or (f.cleaned_data.get('bunker_one') + f.cleaned_data.get('bunker_two')) > 0:
+
+				# I changed this up a bit. I'm willing to take in scores of double zeroes as dummy inputs
+				if f.cleaned_data.get('shooter') is not None:
 					c_shooter = f.cleaned_data.get('shooter')
 					c_b1 = f.cleaned_data.get('bunker_one')
 					c_b2 = f.cleaned_data.get('bunker_two')
 
 					bunker_total = [c_b1 + c_b2]
 
-					# sum all current bunkers from this year to calculate average later on
-					bunker_qset = Score.objects \
-						.annotate(season=models.functions.Extract('date', 'year'),
-								  bunker_total=F('bunker_one') + F('bunker_two')) \
-						.filter(season=self.this_season, team=team_id, shooter=c_shooter)
+					# check to see if a score already exists for the week. If it does, warn me of duplication
+					if Score.objects.filter(bunker_one=c_b1, bunker_two=c_b2).exists():
+						messages.add_message(self.request, messages.WARNING,
+											 str(c_shooter) + " already has a score for this week. Score not added.")
+					# else add a new score to the Score model
+					else:
+						# build the new score to add to the database
+						new_score = Score(shooter=c_shooter, team=team_id, date=c_date, week=c_week,
+										  bunker_one=c_b1, bunker_two=c_b2)
 
-					# add the queried and summed bunkers to the bunker list
-					for q in bunker_qset:
-						bunker_total.append(q.bunker_total)
-
-					# calculate average based on the shooter and the current season
-					average = sum(bunker_total) / float(len(bunker_total))
-
-					# build the new score to add to the database
-					new_score = Score(shooter=c_shooter, team=team_id, date=c_date, week=c_week,
-									  bunker_one=c_b1, bunker_two=c_b2,
-									  average=average)
-
-					#print(new_score)
-					new_score.save()
+						new_score.save()
+						messages.add_message(self.request, messages.INFO, "Score added for " + str(c_shooter))
 		else:
+			print("ERROR: NEWSCORE_VALIDATION_ERROR...")
 			print("Header", score_form_team.errors)
 			print("Scores", score_formset_week.errors)
 			for e in score_formset_week.errors:
 				print(e)
-			messages.add_message(self.request, messages.ERROR, "Validation error")
+			messages.add_message(self.request, messages.ERROR, "Validation error. Check server logs for details.")
 
 		context = {
 			'score_form_team': score_form_team,
@@ -322,7 +322,9 @@ class NewScoreView(UserPassesTestMixin, View):
 			'team': team,
 		}
 
-		return render(request, self.template_name, context)
+		# return render(request, self.template_name, context)
+		return HttpResponseRedirect('/shooter/administration/')
+
 
 class TestView(View):
 	def get(self, request):
@@ -336,4 +338,5 @@ class TestView(View):
 # Special formulas for calculating averages
 # TODO: Build special formulas
 def mean(numbers):
-	return float(sum(numbers)) / max(len(numbers), 1)
+
+	return round(float(sum(numbers)) / max(len(numbers), 1),2)
