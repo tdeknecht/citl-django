@@ -256,8 +256,9 @@ class NewScoreView(UserPassesTestMixin, View):
 			.order_by('shooter__last_name', 'shooter__first_name') \
 			.distinct('shooter__last_name', 'shooter__first_name')
 
-		# initialize the scores to 0
-		score_init = [{'bunker_one': 0, 'bunker_two': 0} for shooters in qset]
+		# initialize the scores to 0 for the form being displayed
+		for shooter in qset:
+			shooter.bunker_one, shooter.bunker_two = 0,0
 
 		# build the forms with their respective initalized data
 		score_form_team = self.score_form_team(initial=date_init)
@@ -286,18 +287,16 @@ class NewScoreView(UserPassesTestMixin, View):
 
 			for f in score_formset_week:
 				# Don't do anything with fields that don't have a shooter selected
-				# if f.cleaned_data.get('shooter') is not None or (f.cleaned_data.get('bunker_one') + f.cleaned_data.get('bunker_two')) > 0:
-
-				# I changed this up a bit. I'm willing to take in scores of double zeroes as dummy inputs
 				if f.cleaned_data.get('shooter') is not None:
 					c_shooter = f.cleaned_data.get('shooter')
 					c_b1 = f.cleaned_data.get('bunker_one')
 					c_b2 = f.cleaned_data.get('bunker_two')
 
-					bunker_total = [c_b1 + c_b2]
-
+					# if the scores are zeroes, don't add a new score
+					if (c_b1 + c_b2) == 0:
+						continue
 					# check to see if a score already exists for the week. If it does, warn me of duplication
-					if Score.objects.filter(bunker_one=c_b1, bunker_two=c_b2).exists():
+					elif Score.objects.filter(shooter=c_shooter, week=c_week, bunker_one=c_b1, bunker_two=c_b2).exists():
 						messages.add_message(self.request, messages.WARNING,
 											 str(c_shooter) + " already has a score for this week. Score not added.")
 					# else add a new score to the Score model
