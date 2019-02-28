@@ -76,8 +76,9 @@ class ScorecardView(View):
 
 			# Calculate the shooters overall avarage via separate method
 			# Right now this is very inneficient because it's being called on every loop.
-			# TODO: Fix how inneficient this is
+			# TODO: (low priority) Fix how inneficient this is
 			avg_l.append(scorecard[personName]['weeks'][score['week']])
+			print(avg_l)
 			scorecard[personName]['average'] = mean(avg_l)
 
 			# Bump the count and circle back
@@ -154,6 +155,7 @@ class NewTeamView(UserPassesTestMixin, View):
 					return HttpResponseRedirect('/shooter/administration/newteam/')
 				else:
 					new_team.save()
+					messages.add_message(self.request, messages.INFO, "Successfully added team " + str(c_team_name))
 			else:
 				messages.add_message(self.request, messages.ERROR, "A Team Name must be entered")
 
@@ -296,7 +298,7 @@ class NewScoreView(UserPassesTestMixin, View):
 					if (c_b1 + c_b2) == 0:
 						continue
 					# check to see if a score already exists for the week. If it does, warn me of duplication
-					elif Score.objects.filter(shooter=c_shooter, week=c_week, bunker_one=c_b1, bunker_two=c_b2).exists():
+					elif Score.objects.filter(shooter=c_shooter, week=c_week).exists():
 						messages.add_message(self.request, messages.WARNING,
 											 str(c_shooter) + " already has a score for this week. Score not added.")
 					# else add a new score to the Score model
@@ -337,5 +339,7 @@ class TestView(View):
 # Special formulas for calculating averages
 # TODO: Build special formulas
 def mean(numbers):
-
+	# if W0 > 0
+	#	If only two scores between W1 and W15: average(W0:W15)
+	#	else: average(W1:W15)
 	return round(float(sum(numbers)) / max(len(numbers), 1),2)
