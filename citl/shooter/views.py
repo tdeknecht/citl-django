@@ -62,27 +62,35 @@ class ScorecardView(View):
 				.filter(team__team_name=team) \
 				.order_by('shooter__last_name', 'shooter__first_name', 'week')
 
+		# Init some vars for the upcoming for loop
 		scorecard = {}
+		avg_l = []
+		personName_prev = 'INIT'
 		for score in scores:
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
+
+
+			if personName != personName_prev and personName_prev != 'INIT':
+				scorecard[personName_prev]['average'] = mean(avg_l)
+				print(mean(avg_l))
+
 			# For each new person pulled from the Team, build their scorecard line and calculate average
 			if personName not in scorecard:
 				avg_l = []
-				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'),
-										  'count': 0, 'average': 0 }
+				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'), 'count': 0, 'average': 0 }
 
-			# Add the two bunkers for that week
-			scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
+			if (score['bunker_one'] + score['bunker_two']) > 0:
+				# Add the two bunkers for that week
+				scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
 
-			# Calculate the shooters overall avarage via separate method
-			# Right now this is very inneficient because it's being called on every loop.
-			# TODO: (low priority) Fix how inneficient this is
-			avg_l.append(scorecard[personName]['weeks'][score['week']])
-			print(avg_l)
-			scorecard[personName]['average'] = mean(avg_l)
+				# Add the bunker totals to the Average List. This list is used to calculate the shooters average
+				avg_l.append(scorecard[personName]['weeks'][score['week']])
 
-			# Bump the count and circle back
-			scorecard[personName]['count'] += 1
+				# Bump the Week Shot count
+				scorecard[personName]['count'] += 1
+
+			# Create personName pointer for use with calculating Average
+			personName_prev = personName
 
 		context = {
 			'scores': scorecard,
@@ -297,8 +305,8 @@ class NewScoreView(UserPassesTestMixin, View):
 					# if the scores are zeroes, don't add a new score
 					if (c_b1 + c_b2) == 0:
 						continue
-					# check to see if a score already exists for the week. If it does, warn me of duplication
-					elif Score.objects.filter(shooter=c_shooter, week=c_week).exists():
+					# check to see if a score already exists for the year and week. If it does, warn me of duplication
+					elif Score.objects.filter(shooter=c_shooter, week=c_week, date__year=c_date.year).exists():
 						messages.add_message(self.request, messages.WARNING,
 											 str(c_shooter) + " already has a score for this week. Score not added.")
 					# else add a new score to the Score model
