@@ -64,33 +64,24 @@ class ScorecardView(View):
 
 		# Init some vars for the upcoming for loop
 		scorecard = {}
-		avg_l = []
-		personName_prev = 'INIT'
 		for score in scores:
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
 
-
-			if personName != personName_prev and personName_prev != 'INIT':
-				scorecard[personName_prev]['average'] = mean(avg_l)
-				print(mean(avg_l))
-
 			# For each new person pulled from the Team, build their scorecard line and calculate average
 			if personName not in scorecard:
-				avg_l = []
 				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'), 'count': 0, 'average': 0 }
 
 			if (score['bunker_one'] + score['bunker_two']) > 0:
 				# Add the two bunkers for that week
 				scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
 
-				# Add the bunker totals to the Average List. This list is used to calculate the shooters average
-				avg_l.append(scorecard[personName]['weeks'][score['week']])
-
-				# Bump the Week Shot count
+				# Bump the Weeks Shot count
 				scorecard[personName]['count'] += 1
 
-			# Create personName pointer for use with calculating Average
-			personName_prev = personName
+		# Calculate shooters' averages
+		for person, values in scorecard.items():
+			average = {k: v for k, v in values['weeks'].items() if v != '-'}
+			values['average'] = mean(average)
 
 		context = {
 			'scores': scorecard,
@@ -346,8 +337,10 @@ class TestView(View):
 
 # Special formulas for calculating averages
 # TODO: Build special formulas
-def mean(numbers):
+def mean(scores):
+	#print(scores[0])
+	return round(float(sum(scores.values())) / max(len(scores.values()), 1),2)
+
 	# if W0 > 0
 	#	If only two scores between W1 and W15: average(W0:W15)
 	#	else: average(W1:W15)
-	return round(float(sum(numbers)) / max(len(numbers), 1),2)
