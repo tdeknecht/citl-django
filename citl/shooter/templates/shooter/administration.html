@@ -10,9 +10,18 @@
 		<table id="shooter-tables">
 		{% for team in season %}
 			<tr>
-				<td><a href="{% url 'shooter:newscore' team.team_name %}">{{ team.team_name }}</a></td>
+				<td><a href="{% url 'shooter:newscore' team.team__team_name %}">{{ team.team__team_name }}</a></td>
 			</tr>
 		{% endfor %}
 		</table>
+		<p>
+			{% if messages %}
+			<ul class="messages">
+				{% for message in messages %}
+				<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+				{% endfor %}
+			</ul>
+			{% endif %}
+		</p>
 	</div>
 {% endblock %}

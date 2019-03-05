@@ -273,9 +273,9 @@ a:hover, a:active {
 	text-align: center;
 	border-collapse: collapse;
 	table-layout: auto;
-	width: 100%;
+	/* width: 100%; */
 }
-
+/*
 #input-tables tr {
 	height: 35px;
 }
@@ -299,7 +299,7 @@ a:hover, a:active {
 #input-tables tr:hover {
 	background-color: #ddd;
 }
-
+*/
 /* Forms */
 
 input[id*="team_name"], input[id*="-first_name"], input[id*="-last_name"], input[id*="-email"] {

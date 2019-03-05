@@ -1,5 +1,3 @@
-import datetime
-
 from django import forms
 from django.forms.formsets import BaseFormSet
 
@@ -7,11 +5,13 @@ from .models import Shooter, Team, Score
 
 # ModelForms
 
+
 class TeamForm(forms.ModelForm):
 	
 	class Meta:
 		model = Team
-		fields = ['team_name', 'season']
+		fields = ['team_name']
+
 
 class TeamChoiceForm(forms.Form):
 	team_name = forms.ChoiceField(choices=[])
@@ -19,26 +19,44 @@ class TeamChoiceForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		super(TeamChoiceForm, self).__init__(*args, **kwargs)
 		self.fields['team_name'].choices = Team.objects.values_list('team_name', 'team_name') \
-			.filter(season=datetime.datetime.now().year) \
 			.distinct()
+
 
 class ShooterForm(forms.ModelForm):
 	class Meta:
 		model	= Shooter
-		fields	= ['first_name', 'last_name', 'email', 'rookie', 'guest']
+		fields	= ['first_name', 'last_name', 'email', 'rookie', 'guest', 'captain']
 
-class ScoreForm(forms.ModelForm):
-	
+
+class DateInput(forms.DateInput):
+	input_type = 'date'
+
+
+class ScoreFormTeam(forms.ModelForm):
 	class Meta:
 		model = Score
-		fields = ['team', 'shooter', 'date', 'week', 'bunker_one', 'bunker_two']
+		fields = ['date', 'week']
+		widgets = {
+			'date': DateInput(),
+		}
 
-	team		= forms.ModelMultipleChoiceField(queryset=Team.objects.all().filter(season=datetime.datetime.now().year))
-	#shooter	= Dynamically choose shooter based on what team
-	
+
+class ScoreFormWeek(forms.ModelForm):
+	class Meta:
+		model = Score
+		fields = ['shooter', 'bunker_one', 'bunker_two']
+
+		initial = {
+			'bunker_one': 0,
+			'bunker_two': 0,
+		}
+
 	#def __init__(self, *args, **kwargs):
-		#super().__init__(*args, **kwargs)
-		#self.fields['shooter'].queryset = Shooter.objects.none()
+		#super(ScoreFormWeek, self).__init__(*args, **kwargs)
+
+		#self.fields['shooter'].widget.attrs['disabled'] = True
+		#self.fields['bunker_one'].initial = 0
+
 
 # Forms
 
@@ -61,11 +79,12 @@ class ShooterForm(forms.Form):
 """
 
 # BaseFormSets
-			
+
+
 class BaseTeamFormSet(BaseFormSet):
 	def clean(self):
-		#Adds validation to check that no two teams have the same name or captain
-		#and that all teams have a team name and captain
+		# Adds validation to check that no two teams have the same name or captain
+		# and that all teams have a team name and captain
 		if any(self.errors):
 			return
 

@@ -6,13 +6,14 @@ import datetime
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib import messages
 from django.shortcuts import render
-from django.forms import formset_factory
+from django.forms import formset_factory, modelformset_factory, inlineformset_factory
 from django.views import View
 from django.http import HttpResponseRedirect
 from django.db import models
+from django.db.models import F
 
 from .models import Shooter, Team, Score
-from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreForm
+from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreFormTeam, ScoreFormWeek
 
 class SeasonsView(View):
 
@@ -57,20 +58,33 @@ class ScorecardView(View):
 		week_range = range(0,16)
 
 		scores = Score.objects \
-				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', 'average',
-						'team__captain__first_name', 'team__captain__last_name' ) \
-				.filter(team__season=year, team__team_name=team) \
-				.order_by('shooter__first_name', 'week')
+				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two') \
+				.filter(team__team_name=team) \
+				.order_by('shooter__last_name', 'shooter__first_name', 'week')
 
+		# Init some vars for the upcoming for loop
 		scorecard = {}
 		for score in scores:
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
-			if personName not in scorecard:
-				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'),
-										  'count': 0, 'average': score['average'] }
 
-			scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
-			scorecard[personName]['count'] += 1
+			# For each new person pulled from the Team, build their scorecard line and calculate average
+			# Count var is initializes at -1 because WEEK0 is NOT counted toward weeks participated
+			if personName not in scorecard:
+				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'), 'count': -1, 'average': 0 }
+
+			if (score['bunker_one'] + score['bunker_two']) > 0:
+				# Add the two bunkers for that week
+				scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
+
+				# Bump the Weeks Shot count
+				scorecard[personName]['count'] += 1
+
+		# Calculate shooters' averages
+		for person, values in scorecard.items():
+			average = {k: v for k, v in values['weeks'].items() if v != '-'}
+			values['average'] = mean(average)
+
+		# TODO: Add 'Total Targets' table line in Scorecard view
 
 		context = {
 			'scores': scorecard,
@@ -84,16 +98,21 @@ class ScorecardView(View):
 class AdministrationView(UserPassesTestMixin, View):
 
 	template_name = 'shooter/administration.html'
-	this_season = datetime.datetime.now().year
 
 	def test_func(self):
-		"""Validate user viewing this page has permission
+		"""Validate user viewing this page has permissions
 		"""
-		return self.request.user.groups.filter(name='League Administrators').exists()
+		return self.request.user.groups.filter(name='league_admin_g').exists()
 
 	def get(self, request):
 
-		season = Team.objects.values('team_name').order_by('team_name').filter(season=self.this_season)
+		season = Score.objects \
+			.annotate(season=models.functions.Extract('date', 'year')) \
+			.values('team__team_name') \
+			.order_by('team__team_name') \
+			.distinct()
+
+		#season = Score.objects.values('team').order_by('team').distinct()
 
 		context = {
 			'season': season,
@@ -106,80 +125,41 @@ class AdministrationView(UserPassesTestMixin, View):
 class NewTeamView(UserPassesTestMixin, View):
 
 	template_name 	= 'shooter/newteam.html'
-	this_season		= datetime.datetime.now().year
-	extra_forms		= 14
 	TeamForm		= TeamForm
-	ShooterFormSet	= formset_factory(ShooterForm, min_num=1, validate_min=True, extra=extra_forms)
 
 	def test_func(self):
 		"""Validate user viewing this page has permission
 		"""
-		return self.request.user.groups.filter(name='League Administrators').exists()
+		return self.request.user.groups.filter(name='league_admin_g').exists()
 
 	def get(self, request, *args, **kwargs):
-		"""On initial GET, return form and formset for Team and Shooter
+		"""On initial GET, return forms
 		"""
 		team_form = self.TeamForm
-		shooter_formset = self.ShooterFormSet
 
-		return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})
+		return render(request, self.template_name, {'team_form': team_form})
 
 	def post(self, request, *args, **kwargs):
 		"""On POST, collect information in the forms, validate it, and add it to the database
 		"""
 		team_form = self.TeamForm(request.POST)
-		shooter_formset = self.ShooterFormSet(request.POST)
 
 		# Basic form validation conditional
-		if team_form.is_valid() and shooter_formset.is_valid():
+		if team_form.is_valid():
 
 			c_team_name = team_form.cleaned_data.get('team_name')
-			c_season	= team_form.cleaned_data.get('season')
 
-			new_shooters = []
-
-			# Can't process any Shooters unless we have a team name and season
-			if c_team_name and c_season:
-				new_team = Team(team_name=c_team_name, season=c_season)
+			if c_team_name:
+				new_team = Team(team_name=c_team_name)
 
 				if Team.objects.filter(team_name=c_team_name).exists():
 					messages.add_message(self.request, messages.ERROR, "Team " + c_team_name + " already exists")
 					return HttpResponseRedirect('/shooter/administration/newteam/')
-
 				else:
 					new_team.save()
-
-				# If a team was entered correctly, continue processing Shooters
-				for f in shooter_formset:
-
-					c_first_name 	= f.cleaned_data.get('first_name')
-					c_last_name 	= f.cleaned_data.get('last_name')
-					c_email 		= f.cleaned_data.get('email')
-					c_rookie		= f.cleaned_data.get('rookie')
-					c_guest			= f.cleaned_data.get('rookie')
-
-					# Need to have a First and Last name. The rest is optional or defaulted
-					if c_first_name and c_last_name:
-						shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email,
-										  rookie=c_rookie, guest=c_guest)
-
-						# Check to see if the name was entered twice in the same form
-						if shooter not in new_shooters:
-
-							# Check to see if the shooter already exists in the league
-							# Q: How do I handle multiple shooters with the same name in the league? Could get messy...
-							if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists():
-								messages.add_message(self.request, messages.WARNING, c_first_name + " " + c_last_name +
-													 " already exists in the league")
-							else:
-								shooter.save()
-								ScoreInit = Score(shooter=shooter, team=new_team, date=datetime.datetime.now().date())
-								ScoreInit.save()
-						else:
-							messages.add_message(self.request, messages.WARNING, c_first_name + " " + c_last_name +
-												 " was entered more than once on the form")
+					messages.add_message(self.request, messages.INFO, "Successfully added team " + str(c_team_name))
 			else:
-				messages.add_message(self.request, messages.ERROR, "A Team Name and Season must be entered")
+				messages.add_message(self.request, messages.ERROR, "A Team Name must be entered")
 
 		else:
 			messages.add_message(self.request, messages.ERROR, "Validation error")
@@ -195,14 +175,13 @@ class NewShooterView(UserPassesTestMixin, View):
 	template_name = 'shooter/newshooter.html'
 	this_season = datetime.datetime.now().year
 	team_form = TeamChoiceForm
-	# team_form.fields['team_name'].initial = Team.objects.filter(season=this_season)
 	shooter_form = ShooterForm
 
 	def test_func(self):
-		return self.request.user.groups.filter(name='League Administrators').exists()
+		return self.request.user.groups.filter(name='league_admin_g').exists()
 
 	def get(self, request):
-		"""On initial GET, return form and formset for Team and Shooter
+		"""On initial GET, return forms
 		"""
 		team_form = self.team_form
 		shooter_form = self.shooter_form
@@ -222,27 +201,31 @@ class NewShooterView(UserPassesTestMixin, View):
 			c_first_name = shooter_form.cleaned_data['first_name']
 			c_last_name = shooter_form.cleaned_data['last_name']
 			c_email = shooter_form.cleaned_data['email']
+			c_captain = shooter_form.cleaned_data['captain']
 			c_rookie = shooter_form.cleaned_data['rookie']
-			c_guest = shooter_form.cleaned_data['rookie']
+			c_guest = shooter_form.cleaned_data['guest']
 
 			# Need to have a Team Name, and First and Last name. The rest is optional or defaulted
 			if c_team_name and c_first_name and c_last_name:
-				shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email,
+				shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email, captain=c_captain,
 								  rookie=c_rookie, guest=c_guest)
 
 				# Check to see if the shooter already exists in the league; brute force...
-				# Q: How do I handle multiple shooters with the same name in the league? Could get messy...
-				if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists():
+				# TODO: How do I handle multiple shooters with the same name in the league? Could get messy.
+				#		Right now I do it via a unique email address.
+				if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name, email=c_email).exists():
 					messages.add_message(self.request, messages.WARNING,
 										 c_first_name + " " + c_last_name + " already exists in the league")
 
 				# I don't need to check if the team exists because I pull it from Team model in forms.py
 
-				# If the shooter is new, save the shooter and give them a WEEK0 score
+				# If the shooter is new, save the shooter and give them a WEEK0 score (default TOTAL 35).
+				# I could create default values for WEEK0 via the Model, but this gives me more flexibility.
 				else:
-					team = Team.objects.get(team_name=c_team_name, season=self.this_season)
+					team = Team.objects.get(team_name=c_team_name)
 					shooter.save()
-					ScoreInit = Score(shooter=shooter, team=team, date=datetime.datetime.now().date())
+					ScoreInit = Score(shooter=shooter, team=team, date=datetime.datetime.now().date(),
+									bunker_one=1, bunker_two=34)
 					ScoreInit.save()
 					messages.add_message(self.request, messages.INFO, c_first_name + " " + c_last_name +
 										 " added to " + c_team_name)
@@ -254,14 +237,101 @@ class NewShooterView(UserPassesTestMixin, View):
 class NewScoreView(UserPassesTestMixin, View):
 
 	template_name = 'shooter/newscore.html'
+	this_season = datetime.datetime.now().year
+	score_form_team = ScoreFormTeam
+	score_formset_week = modelformset_factory(Score, form=ScoreFormWeek)
 
 	def test_func(self):
 
-		return self.request.user.groups.filter(name='League Administrators').exists()
+		return self.request.user.groups.filter(name='league_admin_g').exists()
 
 	def get(self, request, team):
+		"""On initial GET, return forms
+		"""
 
-		return render(request, self.template_name, {'team': team})
+		# initialize the first bit of the form: date and week. We only need to enter this once per team
+		date_init = {
+			'date': datetime.datetime.today(),
+			'week': 0,
+		}
+
+		# get the team_id for the team_name that was passed via URLs
+		team_id = Team.objects.get(team_name=team)
+		# pull the shooters into a queryset to prepoulate the modelformset, filtering on current year and team_id
+		qset = Score.objects \
+			.annotate(season=models.functions.Extract('date', 'year')) \
+			.filter(season=self.this_season, team=team_id) \
+			.order_by('shooter__last_name', 'shooter__first_name') \
+			.distinct('shooter__last_name', 'shooter__first_name')
+
+		# initialize the scores to 0 for the form being displayed
+		for shooter in qset:
+			shooter.bunker_one, shooter.bunker_two = 0,0
+
+		# build the forms with their respective initalized data
+		score_form_team = self.score_form_team(initial=date_init)
+		score_formset_week = self.score_formset_week(queryset=qset)
+
+		context = {
+			'score_form_team': score_form_team,
+			'score_formset_week': score_formset_week,
+			'team': team,
+		}
+
+		return render(request, self.template_name, context)
+
+	def post(self, request, team):
+		"""On POST, validate data entry and save to back end
+		"""
+
+		score_form_team = self.score_form_team(request.POST)
+		score_formset_week = self.score_formset_week(request.POST)
+
+		if score_form_team.is_valid() and score_formset_week.is_valid():
+
+			c_date = score_form_team.cleaned_data.get('date')
+			c_week = score_form_team.cleaned_data.get('week')
+			team_id = Team.objects.get(team_name=team)
+
+			for f in score_formset_week:
+				# Don't do anything with fields that don't have a shooter selected
+				if f.cleaned_data.get('shooter') is not None:
+					c_shooter = f.cleaned_data.get('shooter')
+					c_b1 = f.cleaned_data.get('bunker_one')
+					c_b2 = f.cleaned_data.get('bunker_two')
+
+					# if the scores are zeroes, don't add a new score
+					if (c_b1 + c_b2) == 0:
+						continue
+					# check to see if a score already exists for the year and week. If it does, warn me of duplication
+					elif Score.objects.filter(shooter=c_shooter, week=c_week, date__year=c_date.year).exists():
+						messages.add_message(self.request, messages.WARNING,
+											 str(c_shooter) + " already has a score for this week. Score not added.")
+					# else add a new score to the Score model
+					else:
+						# build the new score to add to the database
+						new_score = Score(shooter=c_shooter, team=team_id, date=c_date, week=c_week,
+										  bunker_one=c_b1, bunker_two=c_b2)
+
+						new_score.save()
+						messages.add_message(self.request, messages.INFO, "Score added for " + str(c_shooter))
+		else:
+			print("ERROR: NEWSCORE_VALIDATION_ERROR...")
+			print("Header", score_form_team.errors)
+			print("Scores", score_formset_week.errors)
+			for e in score_formset_week.errors:
+				print(e)
+			messages.add_message(self.request, messages.ERROR, "Validation error. Check server logs for details.")
+
+		context = {
+			'score_form_team': score_form_team,
+			'score_formset_week': score_formset_week,
+			'team': team,
+		}
+
+		# return render(request, self.template_name, context)
+		return HttpResponseRedirect('/shooter/administration/')
+
 
 class TestView(View):
 	def get(self, request):
@@ -271,3 +341,16 @@ class TestView(View):
 		}
 
 		return render(request, 'shooter/test.html', context)
+
+# Special formulas for calculating averages
+def mean(scores):
+	# TODO: Could be a more Pythonic way of doing this than creating an entirely new dictionary.
+	# A temporary dictionary that drops W0 to allow for special league average formulas
+	scores_no_w0 = {k:v for k,v in scores.items() if k != 0}
+
+	# If less than two scores between W1 and W15: average(W0:W15)
+	if len(scores_no_w0.values()) < 2:
+		return round(float(sum(scores.values())) / max(len(scores.values()), 1),2)
+	# Else average(W1:W15)
+	else:
+		return round(float(sum(scores_no_w0.values())) / max(len(scores_no_w0.values()), 1),2)
