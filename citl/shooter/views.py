@@ -68,8 +68,9 @@ class ScorecardView(View):
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
 
 			# For each new person pulled from the Team, build their scorecard line and calculate average
+			# Count var is initializes at -1 because WEEK0 is NOT counted toward weeks participated
 			if personName not in scorecard:
-				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'), 'count': 0, 'average': 0 }
+				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'), 'count': -1, 'average': 0 }
 
 			if (score['bunker_one'] + score['bunker_two']) > 0:
 				# Add the two bunkers for that week
@@ -82,6 +83,8 @@ class ScorecardView(View):
 		for person, values in scorecard.items():
 			average = {k: v for k, v in values['weeks'].items() if v != '-'}
 			values['average'] = mean(average)
+
+		# TODO: Add 'Total Targets' table line in Scorecard view
 
 		context = {
 			'scores': scorecard,
@@ -198,27 +201,31 @@ class NewShooterView(UserPassesTestMixin, View):
 			c_first_name = shooter_form.cleaned_data['first_name']
 			c_last_name = shooter_form.cleaned_data['last_name']
 			c_email = shooter_form.cleaned_data['email']
+			c_captain = shooter_form.cleaned_data['captain']
 			c_rookie = shooter_form.cleaned_data['rookie']
-			c_guest = shooter_form.cleaned_data['rookie']
+			c_guest = shooter_form.cleaned_data['guest']
 
 			# Need to have a Team Name, and First and Last name. The rest is optional or defaulted
 			if c_team_name and c_first_name and c_last_name:
-				shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email,
+				shooter = Shooter(first_name=c_first_name, last_name=c_last_name, email=c_email, captain=c_captain,
 								  rookie=c_rookie, guest=c_guest)
 
 				# Check to see if the shooter already exists in the league; brute force...
-				# TODO: How do I handle multiple shooters with the same name in the league? Could get messy...
-				if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name).exists():
+				# TODO: How do I handle multiple shooters with the same name in the league? Could get messy.
+				#		Right now I do it via a unique email address.
+				if Shooter.objects.filter(first_name=c_first_name, last_name=c_last_name, email=c_email).exists():
 					messages.add_message(self.request, messages.WARNING,
 										 c_first_name + " " + c_last_name + " already exists in the league")
 
 				# I don't need to check if the team exists because I pull it from Team model in forms.py
 
-				# If the shooter is new, save the shooter and give them a WEEK0 score
+				# If the shooter is new, save the shooter and give them a WEEK0 score (default TOTAL 35).
+				# I could create default values for WEEK0 via the Model, but this gives me more flexibility.
 				else:
 					team = Team.objects.get(team_name=c_team_name)
 					shooter.save()
-					ScoreInit = Score(shooter=shooter, team=team, date=datetime.datetime.now().date())
+					ScoreInit = Score(shooter=shooter, team=team, date=datetime.datetime.now().date(),
+									bunker_one=1, bunker_two=34)
 					ScoreInit.save()
 					messages.add_message(self.request, messages.INFO, c_first_name + " " + c_last_name +
 										 " added to " + c_team_name)
@@ -336,11 +343,14 @@ class TestView(View):
 		return render(request, 'shooter/test.html', context)
 
 # Special formulas for calculating averages
-# TODO: Build special formulas
 def mean(scores):
-	#print(scores[0])
-	return round(float(sum(scores.values())) / max(len(scores.values()), 1),2)
+	# TODO: Could be a more Pythonic way of doing this than creating an entirely new dictionary.
+	# A temporary dictionary that drops W0 to allow for special league average formulas
+	scores_no_w0 = {k:v for k,v in scores.items() if k != 0}
 
-	# if W0 > 0
-	#	If only two scores between W1 and W15: average(W0:W15)
-	#	else: average(W1:W15)
+	# If less than two scores between W1 and W15: average(W0:W15)
+	if len(scores_no_w0.values()) < 2:
+		return round(float(sum(scores.values())) / max(len(scores.values()), 1),2)
+	# Else average(W1:W15)
+	else:
+		return round(float(sum(scores_no_w0.values())) / max(len(scores_no_w0.values()), 1),2)
