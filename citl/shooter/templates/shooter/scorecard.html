@@ -19,12 +19,23 @@
 			<tr>
 				<td>{{ name }}</td>
 				{% for w, s in value.weeks.items %}
-					<td>{{ s }}</td>
+					{% if s == 0 %}
+						<td>-</td>
+					{% else %}
+						<td>{{ s }}</td>
+					{% endif %}
 				{% endfor %}
 				<td> {{ value.count }} </td>
 				<td> {{ value.average }} </td>
 			</tr>
 			{% endfor %}
+			<tr>
+				<td>Total Targets</td>
+				{% for week, score in totalTargets.items %}
+					<td>{{ score }} </td>
+				{% endfor %}
+
+			</tr>
 		</table>
 		</p>
 {% endblock %}
