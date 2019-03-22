@@ -17,6 +17,7 @@ from django.db.models import F
 from .models import Shooter, Team, Score
 from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreFormTeam, ScoreFormWeek
 
+
 class SeasonsView(View):
 
 	template_name = 'shooter/seasons.html'
