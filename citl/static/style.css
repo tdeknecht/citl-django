@@ -258,6 +258,13 @@ a:hover, a:active {
 	font-size: 13px;
 }
 
+#scorecard-tables tr:last-child {
+	text-align: center;
+	width: 20%;
+	padding-right: 5px;
+	font-size: 13px;
+}
+
 #scorecard-tables td:nth-child(n+2):nth-child(-n+16), #scorecard-tables th:nth-child(n+2):nth-child(-n+16) {
 	width: 5%;
 }

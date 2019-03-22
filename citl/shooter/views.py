@@ -3,6 +3,8 @@
 import sys
 import datetime
 
+from collections import Counter
+
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib import messages
 from django.shortcuts import render
@@ -14,6 +16,7 @@ from django.db.models import F
 
 from .models import Shooter, Team, Score
 from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreFormTeam, ScoreFormWeek
+
 
 class SeasonsView(View):
 
@@ -70,7 +73,7 @@ class ScorecardView(View):
 			# For each new person pulled from the Team, build their scorecard line and calculate average
 			# Count var is initializes at -1 because WEEK0 is NOT counted toward weeks participated
 			if personName not in scorecard:
-				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,'-'), 'count': -1, 'average': 0 }
+				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,0), 'count': -1, 'average': 0 }
 
 			if (score['bunker_one'] + score['bunker_two']) > 0:
 				# Add the two bunkers for that week
@@ -81,16 +84,19 @@ class ScorecardView(View):
 
 		# Calculate shooters' averages
 		for person, values in scorecard.items():
-			average = {k: v for k, v in values['weeks'].items() if v != '-'}
-			values['average'] = mean(average)
+			scores = {k: v for k, v in values['weeks'].items() if v != '-'}
+			values['average'] = mean(scores)
 
-		# TODO: Add 'Total Targets' table line in Scorecard view
+		# TODO: Add 'Total Targets' table line in scorecard.html
+		# Calculate total targets row
+		total_targets = totalTargets(scorecard)
 
 		context = {
 			'scores': scorecard,
 			'team': team,
 			'weekRange': week_range,
 			'season': year,
+			'totalTargets': total_targets,
 		}
 
 		return render(request, 'shooter/scorecard.html', context)
@@ -300,6 +306,21 @@ class NewScoreView(UserPassesTestMixin, View):
 					c_b1 = f.cleaned_data.get('bunker_one')
 					c_b2 = f.cleaned_data.get('bunker_two')
 
+					# Use this previous logic to improve performance by moving average to its own database
+					# bunker_total = [c_b1 + c_b2]
+					# sum all current bunkers from this year to calculate average later on
+					# bunker_qset = Score.objects \
+					# 	.annotate(season=models.functions.Extract('date', 'year'),
+					#			  bunker_total=F('bunker_one') + F('bunker_two')) \
+					#	.filter(season=self.this_season, team=team_id, shooter=c_shooter)
+
+					# add the queried and summed bunkers to the bunker list
+					# for q in bunker_qset:
+					#	bunker_total.append(q.bunker_total)
+
+					# calculate average based on the shooter and the current season
+					# average = sum(bunker_total) / float(len(bunker_total))
+
 					# if the scores are zeroes, don't add a new score
 					if (c_b1 + c_b2) == 0:
 						continue
@@ -344,13 +365,29 @@ class TestView(View):
 
 # Special formulas for calculating averages
 def mean(scores):
+	# TODO: Move this to newScore with a dedicated table on the back end. Avoid calculating on each page view
+
 	# TODO: Could be a more Pythonic way of doing this than creating an entirely new dictionary.
 	# A temporary dictionary that drops W0 to allow for special league average formulas
-	scores_no_w0 = {k:v for k,v in scores.items() if k != 0}
+	scores_noW0 = {k:v for k,v in scores.items() if k != 0}
 
 	# If less than two scores between W1 and W15: average(W0:W15)
-	if len(scores_no_w0.values()) < 2:
+	if len(scores_noW0.values()) < 2:
 		return round(float(sum(scores.values())) / max(len(scores.values()), 1),2)
 	# Else average(W1:W15)
 	else:
-		return round(float(sum(scores_no_w0.values())) / max(len(scores_no_w0.values()), 1),2)
+		return round(float(sum(scores_noW0.values())) / max(len(scores_noW0.values()), 1),2)
+
+# Calculate Total Targets row in Scorecard
+def totalTargets(scorecard):
+	r = range(0, 16)
+
+	t1 = {'total_targets': dict.fromkeys(r, 0)}
+	t2 = {}
+
+	for shooter,v in scorecard.items():
+		t2 = Counter(t2) + Counter(v['weeks'])
+
+	total_targets = {**t1['total_targets'], **t2}
+
+	return(total_targets)
