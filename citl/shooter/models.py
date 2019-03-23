@@ -1,8 +1,5 @@
 # Shooter models
 
-import datetime
-
-from django.utils import timezone
 from django.db import models
 
 
@@ -11,7 +8,7 @@ class Shooter(models.Model):
 	def __str__(self):
 		shooter_name = self.first_name + " " + self.last_name
 		return shooter_name
-	
+
 	first_name = models.CharField(max_length=50)
 	last_name = models.CharField(max_length=50)
 	email = models.EmailField(max_length=100)
