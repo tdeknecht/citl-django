@@ -47,3 +47,18 @@ class Score(models.Model):
 	week = models.IntegerField(choices=WEEK_CHOICES, default=0)
 	bunker_one = models.IntegerField(default=0)
 	bunker_two = models.IntegerField(default=0)
+
+
+class Scorecard(models.Model):
+
+	def __str__(self):
+		return str(self.team) + ": " \
+				+ str(self.season) + " " \
+				+ str(self.week)
+
+	team = models.ForeignKey(Team, on_delete=models.CASCADE)
+	season = models.IntegerField(default=1900)
+	week = models.IntegerField(default=0)
+	total_targets = models.IntegerField(default=0)
+	rank_points = models.IntegerField(default=0)
+	bonus_points = models.IntegerField(default=0)

@@ -87,7 +87,7 @@ class ScorecardView(View):
 			scores = {k: v for k, v in values['weeks'].items() if v != '-'}
 			values['average'] = mean(scores)
 
-		# TODO: Add 'Total Targets' table line in scorecard.html
+		# TODO: Add 'Total Targets', 'Rank Points', and 'Bonus Points' table line in scorecard.html
 		# Calculate total targets row
 		total_targets = totalTargets(scorecard)
 
