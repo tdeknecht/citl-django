@@ -38,6 +38,7 @@ class SeasonsView(View):
 
 		return render(request, self.template_name, context)
 
+
 class SeasonView(View):
 
 	template_name = 'shooter/season.html'
@@ -54,6 +55,7 @@ class SeasonView(View):
 		}
 
 		return render(request, self.template_name, context)
+
 
 class ScorecardView(View):
 	def get(self, request, year, team):
@@ -101,6 +103,7 @@ class ScorecardView(View):
 
 		return render(request, 'shooter/scorecard.html', context)
 
+
 class AdministrationView(UserPassesTestMixin, View):
 
 	template_name = 'shooter/administration.html'
@@ -125,6 +128,12 @@ class AdministrationView(UserPassesTestMixin, View):
 		}
 
 		return render(request, self.template_name, context)
+
+	def post(self, request, *args, **kwargs):
+		print("hit post")
+
+		# Doing it this way will blank out the fields after POST
+		return HttpResponseRedirect('/shooter/administration/')
 
 # FORM VIEWS
 
@@ -175,6 +184,7 @@ class NewTeamView(UserPassesTestMixin, View):
 
 		# Doing it this way will keep the fields populated after POST
 		# return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})
+
 
 class NewShooterView(UserPassesTestMixin, View):
 
@@ -239,6 +249,7 @@ class NewShooterView(UserPassesTestMixin, View):
 			messages.add_message(self.request, messages.ERROR, "Validation error")
 
 		return HttpResponseRedirect('/shooter/administration/newshooter/')
+
 
 class NewScoreView(UserPassesTestMixin, View):
 

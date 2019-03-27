@@ -3,19 +3,25 @@
 {% block content %}
 	<div class="general-text">
 		<div id="main-header">
+			General
 			<p>
-			<a class="tile" href="{% url 'shooter:newteam' %}">New Team</a>
-			<a class="tile" href="{% url 'shooter:newshooter' %}">New Shooter</a>
+			<form action="" method="post">
+				{% csrf_token %}
+				<a class="bigtile" href="{% url 'shooter:newteam' %}">New Team</a>
+				<a class="bigtile" href="{% url 'shooter:newshooter' %}">New Shooter</a>
+
+				<input class="bigtile" type="submit" name="run_scores" value="Run Scores">
+			</form>
 			</p>
-			New Score
-		</div>
-		<table id="shooter-tables">
-		{% for team in season %}
-			<tr>
-				<td><a href="{% url 'shooter:newscore' team.team__team_name %}">{{ team.team__team_name }}</a></td>
-			</tr>
-		{% endfor %}
-		</table>
+
+			New Scores
+			{% for team in season %}
+			<p>
+			<a class="liltile" href="{% url 'shooter:newscore' team.team__team_name %}">{{ team.team__team_name }}</a>
+			</p>
+			{% endfor %}
+			</div>
+
 			{% if messages %}
 			<p>
 			<ul class="messages">
