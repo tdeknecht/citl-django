@@ -31,12 +31,15 @@ class SeasonsView(View):
 			.order_by('-season') \
 			.distinct()
 
+		print(all_season)
+
 		context = {
 			'all_season': all_season,
 			'current_year': datetime.datetime.now().year,
 		}
 
 		return render(request, self.template_name, context)
+
 
 class SeasonView(View):
 
@@ -55,6 +58,7 @@ class SeasonView(View):
 
 		return render(request, self.template_name, context)
 
+
 class ScorecardView(View):
 	def get(self, request, year, team):
 
@@ -62,10 +66,10 @@ class ScorecardView(View):
 
 		scores = Score.objects \
 				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two') \
-				.filter(team__team_name=team) \
+				.filter(team__team_name=team, date__year=year) \
 				.order_by('shooter__last_name', 'shooter__first_name', 'week')
 
-		# Init some vars for the upcoming for loop
+		# Init some vars for the upcoming loop
 		scorecard = {}
 		for score in scores:
 			personName = score['shooter__first_name'] + " " + score['shooter__last_name']
@@ -84,10 +88,11 @@ class ScorecardView(View):
 
 		# Calculate shooters' averages
 		for person, values in scorecard.items():
-			scores = {k: v for k, v in values['weeks'].items() if v != '-'}
-			values['average'] = mean(scores)
+			# scores = {k: v for k, v in values['weeks'].items() if v != '-'} # used this when i had '-' as placeholders
+			scores = {k: v for k, v in values['weeks'].items() if v != 0}
+			values['average'] = shooterAverage(scores)
 
-		# TODO: Add 'Total Targets' table line in scorecard.html
+		# TODO: Add 'Total Targets', 'Rank Points', and 'Bonus Points' table line in scorecard.html
 		# Calculate total targets row
 		total_targets = totalTargets(scorecard)
 
@@ -100,6 +105,7 @@ class ScorecardView(View):
 		}
 
 		return render(request, 'shooter/scorecard.html', context)
+
 
 class AdministrationView(UserPassesTestMixin, View):
 
@@ -120,11 +126,27 @@ class AdministrationView(UserPassesTestMixin, View):
 
 		#season = Score.objects.values('team').order_by('team').distinct()
 
+		# TODO: Pretty sure I removed any use of Season. Come back and clean this up.
 		context = {
 			'season': season,
 		}
 
 		return render(request, self.template_name, context)
+
+	def post(self, request, *args, **kwargs):
+		print("POST")
+
+		scores = Score.objects \
+				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', \
+					    'team__team_name') \
+				.filter(date__year=datetime.datetime.now().year) \
+				.order_by('shooter__last_name', 'shooter__first_name', 'week')
+
+		for team in scores:
+			print(team['team__team_name'])
+		#print(scores)
+
+		return HttpResponseRedirect('/shooter/administration/')
 
 # FORM VIEWS
 
@@ -176,10 +198,11 @@ class NewTeamView(UserPassesTestMixin, View):
 		# Doing it this way will keep the fields populated after POST
 		# return render(request, self.template_name, {'team_form': team_form, 'shooter_formset': shooter_formset})
 
+
 class NewShooterView(UserPassesTestMixin, View):
 
 	template_name = 'shooter/newshooter.html'
-	this_season = datetime.datetime.now().year
+	#this_season = datetime.datetime.now().year
 	team_form = TeamChoiceForm
 	shooter_form = ShooterForm
 
@@ -240,6 +263,7 @@ class NewShooterView(UserPassesTestMixin, View):
 
 		return HttpResponseRedirect('/shooter/administration/newshooter/')
 
+
 class NewScoreView(UserPassesTestMixin, View):
 
 	template_name = 'shooter/newscore.html'
@@ -265,8 +289,7 @@ class NewScoreView(UserPassesTestMixin, View):
 		team_id = Team.objects.get(team_name=team)
 		# pull the shooters into a queryset to prepoulate the modelformset, filtering on current year and team_id
 		qset = Score.objects \
-			.annotate(season=models.functions.Extract('date', 'year')) \
-			.filter(season=self.this_season, team=team_id) \
+			.filter(date__year=self.this_season, team=team_id) \
 			.order_by('shooter__last_name', 'shooter__first_name') \
 			.distinct('shooter__last_name', 'shooter__first_name')
 
@@ -277,6 +300,10 @@ class NewScoreView(UserPassesTestMixin, View):
 		# build the forms with their respective initalized data
 		score_form_team = self.score_form_team(initial=date_init)
 		score_formset_week = self.score_formset_week(queryset=qset)
+
+		# TODO: Make it so not all the shooter names in the league pop up in the dropdown list. Use below as guide.
+		#for form in score_formset_week:
+			#form.fields['shooter'].queryset = Score.objects.filter(team__team_name=team)
 
 		context = {
 			'score_form_team': score_form_team,
@@ -364,7 +391,7 @@ class TestView(View):
 		return render(request, 'shooter/test.html', context)
 
 # Special formulas for calculating averages
-def mean(scores):
+def shooterAverage(scores):
 	# TODO: Move this to newScore with a dedicated table on the back end. Avoid calculating on each page view
 
 	# TODO: Could be a more Pythonic way of doing this than creating an entirely new dictionary.

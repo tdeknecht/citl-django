@@ -1,8 +1,5 @@
 # Shooter models
 
-import datetime
-
-from django.utils import timezone
 from django.db import models
 
 
@@ -11,7 +8,7 @@ class Shooter(models.Model):
 	def __str__(self):
 		shooter_name = self.first_name + " " + self.last_name
 		return shooter_name
-	
+
 	first_name = models.CharField(max_length=50)
 	last_name = models.CharField(max_length=50)
 	email = models.EmailField(max_length=100)
@@ -50,3 +47,18 @@ class Score(models.Model):
 	week = models.IntegerField(choices=WEEK_CHOICES, default=0)
 	bunker_one = models.IntegerField(default=0)
 	bunker_two = models.IntegerField(default=0)
+
+
+class Scorecard(models.Model):
+
+	def __str__(self):
+		return str(self.team) + ": " \
+				+ str(self.season) + " " \
+				+ str(self.week)
+
+	team = models.ForeignKey(Team, on_delete=models.CASCADE)
+	season = models.IntegerField(default=1900)
+	week = models.IntegerField(default=0)
+	total_targets = models.IntegerField(default=0)
+	rank_points = models.IntegerField(default=0)
+	bonus_points = models.IntegerField(default=0)

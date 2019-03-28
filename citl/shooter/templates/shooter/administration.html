@@ -3,25 +3,35 @@
 {% block content %}
 	<div class="general-text">
 		<div id="main-header">
-			<a href="{% url 'shooter:newteam' %}">New Team</a>
-			<p><a href="{% url 'shooter:newshooter' %}">New Shooter</a></p>
-			New Score
-		</div>
-		<table id="shooter-tables">
-		{% for team in season %}
-			<tr>
-				<td><a href="{% url 'shooter:newscore' team.team__team_name %}">{{ team.team__team_name }}</a></td>
-			</tr>
-		{% endfor %}
-		</table>
-		<p>
-			{% if messages %}
-			<ul class="messages">
-				{% for message in messages %}
-				<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-				{% endfor %}
-			</ul>
-			{% endif %}
-		</p>
+			General
+			<p>
+			<form action="" method="post">
+				{% csrf_token %}
+				<a class="bigtile" href="{% url 'shooter:newteam' %}">New Team</a>
+				<a class="bigtile" href="{% url 'shooter:newshooter' %}">New Shooter</a>
+
+				<input class="bigtile" type="submit" name="run_scores" value="Run Scores">
+			</form>
+			</p>
+			New Scores
+        </div>
+        <p>
+        <table id="shooter-tables">
+        {% for team in season %}
+            <tr>
+                <td><a href="{% url 'shooter:newscore' team.team__team_name %}">{{ team.team__team_name }}</a></td>
+            </tr>
+        {% endfor %}
+        </table>
+        </p>
+        {% if messages %}
+        <p>
+        <ul class="messages">
+            {% for message in messages %}
+            <li>{% if message.tags %} <class="{{ message.tags }}"> {% endif %} {{ message }}</li>
+            {% endfor %}
+        </ul>
+        </p>
+        {% endif %}
 	</div>
 {% endblock %}

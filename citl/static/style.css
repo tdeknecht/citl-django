@@ -27,7 +27,7 @@ a:hover, a:active {
 	color: #009933;
 }
 
-/* ID's */
+/* CLASS */
 
 .citl-logo {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
@@ -44,7 +44,7 @@ a:hover, a:active {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 	text-decoration: none;
 	line-height: 1;
-	font-size: 17px;
+	font-size: 18px;
 	letter-spacing: 3px;
 	color: #009933;
 	display: block;
@@ -71,7 +71,6 @@ a:hover, a:active {
     border: none;
 	border-radius: 8px;
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-	font-size: 15px;
 	text-decoration: none;
 	color: white;
 	letter-spacing: 1px;
@@ -82,6 +81,55 @@ a:hover, a:active {
     font-size: 16px;
     margin: 4px 2px;
     cursor: pointer;
+}
+
+.bigtile {
+    background-color: #e6ffee;
+    border: none;
+    border-radius: 6px;
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 20px;
+	text-decoration: none;
+	color: inherit;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+    padding: 50px 50px;
+    text-align: center;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+a.bigtile:hover {
+  background-color: #009933;
+  color: white;
+}
+
+input.bigtile:hover {
+  background-color: #009933;
+  color: white;
+}
+
+.liltile {
+    background-color: #e6ffee;
+    border: none;
+    border-radius: 6px;
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size: 20px;
+	text-decoration: none;
+	color: white;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+    padding: 25px 50px;
+    text-align: center;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+a.liltile:hover {
+  background-color: #009933;
+  color: white;
 }
 
 /* Page layout styles */
