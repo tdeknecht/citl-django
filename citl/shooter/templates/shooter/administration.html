@@ -13,23 +13,25 @@
 				<input class="bigtile" type="submit" name="run_scores" value="Run Scores">
 			</form>
 			</p>
-
 			New Scores
-			{% for team in season %}
-			<p>
-			<a class="liltile" href="{% url 'shooter:newscore' team.team__team_name %}">{{ team.team__team_name }}</a>
-			</p>
-			{% endfor %}
-			</div>
-
-			{% if messages %}
-			<p>
-			<ul class="messages">
-				{% for message in messages %}
-				<li>{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-				{% endfor %}
-			</ul>
-			</p>
-			{% endif %}
+        </div>
+        <p>
+        <table id="shooter-tables">
+        {% for team in season %}
+            <tr>
+                <td><a href="{% url 'shooter:newscore' team.team__team_name %}">{{ team.team__team_name }}</a></td>
+            </tr>
+        {% endfor %}
+        </table>
+        </p>
+        {% if messages %}
+        <p>
+        <ul class="messages">
+            {% for message in messages %}
+            <li>{% if message.tags %} <class="{{ message.tags }}"> {% endif %} {{ message }}</li>
+            {% endfor %}
+        </ul>
+        </p>
+        {% endif %}
 	</div>
 {% endblock %}

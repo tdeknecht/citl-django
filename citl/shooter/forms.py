@@ -51,13 +51,6 @@ class ScoreFormWeek(forms.ModelForm):
 			'bunker_two': 0,
 		}
 
-	#def __init__(self, *args, **kwargs):
-		#super(ScoreFormWeek, self).__init__(*args, **kwargs)
-
-		#self.fields['shooter'].widget.attrs['disabled'] = True
-		#self.fields['bunker_one'].initial = 0
-
-
 # Forms
 
 """
@@ -110,14 +103,14 @@ class BaseTeamFormSet(BaseFormSet):
 				if duplicates:
 					raise forms.ValidationError(
 						'Team Names and Captains must be unique',
-						code = 'duplicate_entries'
+						code='duplicate_entries'
 					)
 
 				# Check that all Teams have a team name and captain
 				if team_name and not captain:
 					raise forms.ValidationError(
 						'A Team must have a Captain',
-						code = 'missing_captain'
+						code='missing_captain'
 					)
 				elif captain and not team_name:
 					raise forms.ValidationError(
