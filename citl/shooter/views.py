@@ -92,7 +92,8 @@ class ScorecardView(View):
 			scores = {k: v for k, v in values['weeks'].items() if v != 0}
 			values['average'] = shooterAverage(scores)
 
-		# TODO: Add 'Total Targets', 'Rank Points', and 'Bonus Points' table line in scorecard.html
+		# TODO: Once the Scorecard model is implemented, change all this to pull from that model and display it
+
 		# Calculate total targets row
 		total_targets = totalTargets(scorecard)
 
@@ -124,9 +125,6 @@ class AdministrationView(UserPassesTestMixin, View):
 			.order_by('team__team_name') \
 			.distinct()
 
-		#season = Score.objects.values('team').order_by('team').distinct()
-
-		# TODO: Pretty sure I removed any use of Season. Come back and clean this up.
 		context = {
 			'season': season,
 		}
@@ -134,17 +132,38 @@ class AdministrationView(UserPassesTestMixin, View):
 		return render(request, self.template_name, context)
 
 	def post(self, request, *args, **kwargs):
-		print("POST")
 
-		scores = Score.objects \
-				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', \
-					    'team__team_name') \
-				.filter(date__year=datetime.datetime.now().year) \
-				.order_by('shooter__last_name', 'shooter__first_name', 'week')
+		if 'run_scores' in request.POST:
+			print("Run Scores executing...")
 
-		for team in scores:
-			print(team['team__team_name'])
-		#print(scores)
+			week_range = range(0, 16)
+
+			scores = Score.objects \
+					.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', \
+							'team__team_name') \
+					.filter(date__year=datetime.datetime.now().year) \
+					.order_by('shooter__last_name', 'shooter__first_name', 'week')
+
+			# I copied this code block from ScoreCardView so I could reuse some logic I wrote earlier for totalTargets
+			# If I chose to, I could come back and just rewrite this whole thing to be more efficient using the raw
+			# output from the queryset. I'm lazy right now.
+			scorecard = {}
+			for score in scores:
+				personName = score['shooter__first_name'] + " " + score['shooter__last_name']
+
+				if personName not in scorecard:
+					scorecard[personName] = { 'weeks': dict.fromkeys(week_range,0) }
+
+				if (score['bunker_one'] + score['bunker_two']) > 0:
+					# Add the two bunkers for that week
+					scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
+
+			# TODO: Add 'Total Targets', 'Rank Points', and 'Bonus Points'
+			# Calculate total targets
+			total_targets = totalTargets(scorecard)
+
+			for week,score in total_targets.items():
+				print(week, score)
 
 		return HttpResponseRedirect('/shooter/administration/')
 
