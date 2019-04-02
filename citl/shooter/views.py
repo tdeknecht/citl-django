@@ -111,6 +111,7 @@ class ScorecardView(View):
 class AdministrationView(UserPassesTestMixin, View):
 
 	template_name = 'shooter/administration.html'
+	season_year = datetime.datetime.now().year
 
 	def test_func(self):
 		"""Validate user viewing this page has permissions
@@ -119,14 +120,15 @@ class AdministrationView(UserPassesTestMixin, View):
 
 	def get(self, request):
 
-		season = Score.objects \
+		season_scores = Score.objects \
 			.annotate(season=models.functions.Extract('date', 'year')) \
 			.values('team__team_name') \
 			.order_by('team__team_name') \
 			.distinct()
 
 		context = {
-			'season': season,
+			'season_scores': season_scores,
+			'season_year': self.season_year,
 		}
 
 		return render(request, self.template_name, context)
@@ -139,27 +141,26 @@ class AdministrationView(UserPassesTestMixin, View):
 
 			# Pull teams from just the current active year
 			teams = Score.objects \
-					.values('team__team_name') \
-					.filter(date__year=datetime.datetime.now().year) \
+					.values('team__team_name', 'team__id') \
+					.filter(date__year=self.season_year) \
 					.distinct()
 
 			# Pull scores for only the current active year, per team found in previous Team query. Assign to teamdict{}
 			teamdict = {}
 			for team in teams:
-				teamdict[team['team__team_name']] = Score.objects \
+				teamdict[team['team__id']] = Score.objects \
 					.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', \
-							'team__team_name') \
-					.filter(date__year=datetime.datetime.now().year, team__team_name=team['team__team_name']) \
+							'team__team_name', 'team__id') \
+					.filter(date__year=self.season_year, team__id=team['team__id']) \
 					.order_by('team__team_name', 'shooter__last_name', 'shooter__first_name', 'week')
 
 			# For each team, go through the scores per Shooter and total up each Week.
 			week_range = range(0, 16)
 			for team,scores in teamdict.items():
+
 				scorecard = {}
-				print("Calculating for " + team)
 				for score in scores:
 					personName = score['shooter__first_name'] + " " + score['shooter__last_name']
-
 					if personName not in scorecard:
 						# Init the dictionary to include all weeks. This helps with Counter in the upcoming calculations
 						scorecard[personName] = { 'weeks': dict.fromkeys(week_range,0) }
@@ -173,7 +174,16 @@ class AdministrationView(UserPassesTestMixin, View):
 					# Calculate Total Targets
 					total_targets = totalTargets(scorecard)
 
-				print(team, total_targets)
+					# Calculate Target Bonus
+					#
+
+					# Calculate Rookie Bonus
+					#
+
+				# Calculate Rank Bonus
+				#
+
+				print(self.season_year, team, total_targets)
 
 		return HttpResponseRedirect('/shooter/administration/')
 
