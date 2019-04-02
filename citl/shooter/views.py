@@ -13,6 +13,7 @@ from django.views import View
 from django.http import HttpResponseRedirect
 from django.db import models
 from django.db.models import F
+from django.db.models import Count
 
 from .models import Shooter, Team, Score
 from .forms import TeamForm, TeamChoiceForm, ShooterForm, ScoreFormTeam, ScoreFormWeek
@@ -79,12 +80,11 @@ class ScorecardView(View):
 			if personName not in scorecard:
 				scorecard[personName] = { 'weeks': dict.fromkeys(week_range,0), 'count': -1, 'average': 0 }
 
-			if (score['bunker_one'] + score['bunker_two']) > 0:
-				# Add the two bunkers for that week
-				scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
+			# Add the two bunkers for that week
+			scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
 
-				# Bump the Weeks Shot count
-				scorecard[personName]['count'] += 1
+			# Bump the Weeks Shot count
+			scorecard[personName]['count'] += 1
 
 		# Calculate shooters' averages
 		for person, values in scorecard.items():
@@ -92,7 +92,8 @@ class ScorecardView(View):
 			scores = {k: v for k, v in values['weeks'].items() if v != 0}
 			values['average'] = shooterAverage(scores)
 
-		# TODO: Add 'Total Targets', 'Rank Points', and 'Bonus Points' table line in scorecard.html
+		# TODO: Once the Scorecard model is implemented, change all this to pull from that model and display it
+
 		# Calculate total targets row
 		total_targets = totalTargets(scorecard)
 
@@ -110,6 +111,7 @@ class ScorecardView(View):
 class AdministrationView(UserPassesTestMixin, View):
 
 	template_name = 'shooter/administration.html'
+	season_year = datetime.datetime.now().year
 
 	def test_func(self):
 		"""Validate user viewing this page has permissions
@@ -118,33 +120,70 @@ class AdministrationView(UserPassesTestMixin, View):
 
 	def get(self, request):
 
-		season = Score.objects \
+		season_scores = Score.objects \
 			.annotate(season=models.functions.Extract('date', 'year')) \
 			.values('team__team_name') \
 			.order_by('team__team_name') \
 			.distinct()
 
-		#season = Score.objects.values('team').order_by('team').distinct()
-
-		# TODO: Pretty sure I removed any use of Season. Come back and clean this up.
 		context = {
-			'season': season,
+			'season_scores': season_scores,
+			'season_year': self.season_year,
 		}
 
 		return render(request, self.template_name, context)
 
 	def post(self, request, *args, **kwargs):
-		print("POST")
 
-		scores = Score.objects \
-				.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', \
-					    'team__team_name') \
-				.filter(date__year=datetime.datetime.now().year) \
-				.order_by('shooter__last_name', 'shooter__first_name', 'week')
+		if 'run_scores' in request.POST:
+			print("Run Scores executing...")
+			# I really don't like the dual queries for this part, but hey, it works
 
-		for team in scores:
-			print(team['team__team_name'])
-		#print(scores)
+			# Pull teams from just the current active year
+			teams = Score.objects \
+					.values('team__team_name', 'team__id') \
+					.filter(date__year=self.season_year) \
+					.distinct()
+
+			# Pull scores for only the current active year, per team found in previous Team query. Assign to teamdict{}
+			teamdict = {}
+			for team in teams:
+				teamdict[team['team__id']] = Score.objects \
+					.values('shooter__first_name', 'shooter__last_name', 'week', 'bunker_one', 'bunker_two', \
+							'team__team_name', 'team__id') \
+					.filter(date__year=self.season_year, team__id=team['team__id']) \
+					.order_by('team__team_name', 'shooter__last_name', 'shooter__first_name', 'week')
+
+			# For each team, go through the scores per Shooter and total up each Week.
+			week_range = range(0, 16)
+			for team,scores in teamdict.items():
+
+				scorecard = {}
+				for score in scores:
+					personName = score['shooter__first_name'] + " " + score['shooter__last_name']
+					if personName not in scorecard:
+						# Init the dictionary to include all weeks. This helps with Counter in the upcoming calculations
+						scorecard[personName] = { 'weeks': dict.fromkeys(week_range,0) }
+
+					if (score['bunker_one'] + score['bunker_two']) > 0:
+						# Add the two bunkers for that week
+						scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
+
+					# TODO: Add 'Total Targets', 'Target Bonus', 'Rookie Bonus', 'Rank Bonus' model and logic
+
+					# Calculate Total Targets
+					total_targets = totalTargets(scorecard)
+
+					# Calculate Target Bonus
+					#
+
+					# Calculate Rookie Bonus
+					#
+
+				# Calculate Rank Bonus
+				#
+
+				print(self.season_year, team, total_targets)
 
 		return HttpResponseRedirect('/shooter/administration/')
 
@@ -405,7 +444,7 @@ def shooterAverage(scores):
 	else:
 		return round(float(sum(scores_noW0.values())) / max(len(scores_noW0.values()), 1),2)
 
-# Calculate Total Targets row in Scorecard
+# Calculate Total Targets
 def totalTargets(scorecard):
 	r = range(0, 16)
 
