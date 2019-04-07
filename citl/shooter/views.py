@@ -135,6 +135,8 @@ class AdministrationView(UserPassesTestMixin, View):
 
 	def post(self, request, *args, **kwargs):
 
+		# TODO: Add something that creates W0 entries for a new season by pulling average from previous year
+
 		if 'run_scores' in request.POST:
 			print("Run Scores executing...")
 			# I really don't like the dual queries for this part, but hey, it works
@@ -158,6 +160,7 @@ class AdministrationView(UserPassesTestMixin, View):
 			week_range = range(0, 16)
 			for team,scores in teamdict.items():
 
+				# The scorecard is per team. This loops creates a new scorecard for each team in teamdict{}
 				scorecard = {}
 				for score in scores:
 					personName = score['shooter__first_name'] + " " + score['shooter__last_name']
@@ -169,21 +172,23 @@ class AdministrationView(UserPassesTestMixin, View):
 						# Add the two bunkers for that week
 						scorecard[personName]['weeks'][score['week']] = score['bunker_one'] + score['bunker_two']
 
-					# TODO: Add 'Total Targets', 'Target Bonus', 'Rookie Bonus', 'Rank Bonus' model and logic
+					# TODO: Add 'Target Bonus', 'Rookie Bonus', 'Rank Bonus' model and logic
 
-					# Calculate Total Targets
+					# Calculate Total Targets per shooter
 					total_targets = totalTargets(scorecard)
 
-					# Calculate Target Bonus
-					#
+				# Calculate Target Bonus
+				# Any team that scores higher than its going-in average receives 5 bonus points
+				# IF total_targets for current week > last_week_sum_of_averages for current week shooters: 5 bonus points
+				target_bonus = targetBonus(scorecard)
 
-					# Calculate Rookie Bonus
-					#
+				# Calculate Rookie Bonus
+				#
 
 				# Calculate Rank Bonus
 				#
 
-				print(self.season_year, team, total_targets)
+				#print(self.season_year, team, total_targets)
 
 		return HttpResponseRedirect('/shooter/administration/')
 
@@ -448,12 +453,19 @@ def shooterAverage(scores):
 def totalTargets(scorecard):
 	r = range(0, 16)
 
-	t1 = {'total_targets': dict.fromkeys(r, 0)}
+	t1 = {'total_targets': dict.fromkeys(r, 0)}  # Init a dict with 0's for each week
 	t2 = {}
 
 	for shooter,v in scorecard.items():
 		t2 = Counter(t2) + Counter(v['weeks'])
 
+	# Merge weeks with targets into the dict with 0's for each week. Overwrite 0's where there are actual scores
 	total_targets = {**t1['total_targets'], **t2}
 
 	return(total_targets)
+
+def targetBonus(scorecard):
+	print("Calculating Target_Bonus...")
+
+	for shooter,v in scorecard.items():
+		print(shooter, v)

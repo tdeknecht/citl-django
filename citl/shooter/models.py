@@ -60,5 +60,6 @@ class Scorecard(models.Model):
 	season = models.IntegerField(default=1900)
 	week = models.IntegerField(default=0)
 	total_targets = models.IntegerField(default=0)
-	rank_points = models.IntegerField(default=0)
-	bonus_points = models.IntegerField(default=0)
+	target_bonus = models.IntegerField(default=0)
+	rookie_bonus = models.IntegerField(default=0)
+	rank_bonus = models.IntegerField(default=0)  # do i need this, or can I calculate it on the fly?
