@@ -58,10 +58,10 @@ a:hover, a:active {
 
 .general-text {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-	font-size: 15px;
+	font-size: 13px;
 	text-decoration: none;
 	color: inherit;
-	letter-spacing: 1px;
+	letter-spacing: .8px;
 	text-transform: none;
 	padding-bottom: 30px;
 }
